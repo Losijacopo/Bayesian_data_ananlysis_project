@@ -1,0 +1,3 @@
+https://vincentarelbundock.github.io/Rdatasets/doc/Stat2Data/SuicideChina.html
+https://bmjopen.bmj.com/content/5/2/e006762
+https://datadryad.org/stash/dataset/doi:10.5061/dryad.r0v35

@@ -1,0 +1,114 @@
+---
+title: "BDA - Project Work"
+author: "Jacopo Losi, Nicola Saljoughi"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+  word_document:
+    toc: yes
+    toc_depth: '1'
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '1'
+---
+```{r setup, include=FALSE}
+# This chunk just sets echo = TRUE as default (i.e. print all code)
+knitr::opts_chunk$set(echo = TRUE, tidy = FALSE)
+
+library(nnet)
+library(epitools)
+library(aaltobda)
+library(tinytex)
+library(markmyassignment)
+library(MASS)
+library(mvtnorm)
+library(ggplot2)
+library(rstan)
+library(devtools)
+library(brms)
+library(loo)
+library(KernSmooth)
+
+data <- read.csv("C:\\Users\\nicol\\Documents\\_study\\EIT\\second_year\\_bayesian_data_analysis\\project\\suicide attempt data_2.csv", stringsAsFactors=FALSE)
+
+```
+
+# Introduction
+
+
+## Objective
+
+The objective of the study is to estimate the incidence of seriours suicide attempts (SSAs), defined as suicide attempts resulting in either death or hospitalization, and to analyse the factors associated with fatality among the attempters. 
+
+## Data 
+The data set is constituted by 2571 observations of 11 variables:
+\begin{itemize}
+  \item \texttt{Person\_ID}: ID number, $1,...,2571$
+  \item \texttt{Hospitalised}: \textit{yes} or \textit{no}
+  \item \texttt{Died}: \textit{yes} or \textit{no}
+  \item \texttt{Urban}: \textit{yes}, \textit{no} or \textit{unknown}
+  \item \texttt{Year}: $2009$, $2010$ or $2011$
+  \item \texttt{Month}: $1,...,12$
+  \item \texttt{Sex}: \textit{female} or \textit{male}
+  \item \texttt{Age}: years
+  \item \texttt{Education}: \textit{iliterate}, \textit{primary}, \textit{Secondary}, \textit{Tertiary} or \textit{unknown}
+  \item \texttt{Occupation}: one of ten categories
+  \item \texttt{method}: one of nine methods
+\end{itemize}
+
+## Source
+
+Sun J, Guo X, Zhang J, Wang M, Jia C, Xu A (2015) "Incidence and fatality of serious suicide attempts in a predominantly rural population in Shandong, China: a public health surveillance study," BMJ Open 5(2): e006762. https://doi.org/10.1136/bmjopen-2014-006762
+
+Data downloaded via Dryad Digital Repository. https://doi.org/10.5061/dryad.r0v35
+
+
+# Analysis
+
+```{r}
+
+rural_men   <- subset(data, data$Sex=="male" & data$Urban=="no")
+rural_women <- subset(data, data$Sex=="female" & data$Urban=="no")
+urban_men   <- subset(data, data$Sex=="male" & data$Urban=="yes")
+urban_women <- subset(data, data$Sex=="female" & data$Urban=="yes")
+
+```
+```{r}
+mydata <- data
+str(mydata)
+
+mydata$Dead <- factor(mydata$Died)
+mydata$out <- relevel(mydata$Dead, ref="no")
+
+```
+```{r}
+mymodel <- multinom(out~Hospitalised+Urban+Year+Month+Sex+Age+Education+Occupation+method, data = mydata)
+summary(mymodel)
+
+```
+
+
+\begin{tabular}{p{13mm} p{10mm} p{25mm} p{20mm} p{25mm} p{35mm} p{20mm} }
+\hline
+  & \textbf{All SAAs}  &  \textbf{Hospitalised} \newline \textbf{and survived}  &  \textbf{Hospitalised} \newline \textbf{but died}  &  \textbf{Total SSA} \newline \textbf{hospitalisations} & \textbf{SSA deaths without} \newline \textbf{hospitalisation} & \textbf{Total SSA} \newline \textbf{deaths} \\
+  \hline
+  Urban      &      &      &     &      &      &      \\
+  \;\;Female & 149  & 99   & 18  & 117  & 32   & 50   \\
+  \;\;Male   & 128  & 65   & 17  & 82   & 46   & 63   \\
+  \;\;Both   & 277  & 164  & 35  & 199  & 78   & 113  \\
+  Rural      &      &      &     &      &      &      \\
+  \;\;Female & 1134 & 598  & 100 & 698  & 436  & 536  \\
+  \;\;Male   & 1079 & 474  & 103 & 577  & 502  & 605  \\
+  \;\;Both   & 2213 & 1072 & 203 & 1275 & 938  & 1141 \\
+  Total      &      &      &     &      &      &      \\
+  \;\;Female & 1328 & 741  & 118 & 859  & 469  & 587  \\
+  \;\;Male   & 1243 & 574  & 120 & 694  & 549  & 669  \\
+  \;\;Both   & 2571 & 1315 & 238 & 1553 & 1018 & 1256 \\
+  \hline
+  
+\end{tabular}
+
+
+# Conclusions
