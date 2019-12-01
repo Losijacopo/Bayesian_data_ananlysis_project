@@ -195,28 +195,6 @@ str(data)
 ```
 
 
-```{r}
-
-## Create Stan data
-dat <- list(N        = nrow(data),
-            p        = 10,
-            died     = data$Died,
-            urban    = data$Urban,
-            year     = data$Year,
-            month    = data$Season,
-            sex      = data$Sex,
-            age      = data$Age,
-            edu      = data$Education,
-            job      = data$Occupation,
-            method   = data$method)
-
-## Load Stan file
-fileName <- "./logistic_regression_model.stan"
-stan_code <- readChar(fileName, file.info(fileName)$size)
-cat(stan_code)
-
-```
-
 
 \begin{tabular}{p{13mm} p{10mm} p{25mm} p{20mm} p{25mm} p{35mm} p{20mm} }
 \hline
@@ -251,8 +229,43 @@ mydata <- mydata[-indexUnkn,]
 ```
 
 ```{r}
-
-
+ncol(mydata) - 2
 ```
+
+```{r}
+
+## Create Stan data
+dat <- list(N        = nrow(mydata),
+            p        = ncol(mydata) - 2,
+            died     = c(t(mydata$Died)),
+            urban    = c(t(mydata$Urban)),
+            year     = c(t(mydata$Year)),
+            month    = c(t(mydata$Season)),
+            sex      = c(t(mydata$Sex)),
+            age      = c(t(mydata$Age)),
+            edu      = c(t(mydata$Education)),
+            job      = c(t(mydata$Occupation)),
+            method   = c(t(mydata$method)))
+
+## Load Stan file
+fileName <- "./logistic_regression_model.stan"
+stan_code <- readChar(fileName, file.info(fileName)$size)
+cat(stan_code)
+```
+
+```{r}
+
+# Run Stan
+resStan <- stan(file = 'logistic_regression_model.stan',
+                data = dat,
+                chains = 3, 
+                iter = 3000, 
+                warmup = 500)
+
+# Show traceplot
+traceplot(resStan, pars = c("beta"), inc_warmup = TRUE)
+```
+
+
 
 # Conclusions
