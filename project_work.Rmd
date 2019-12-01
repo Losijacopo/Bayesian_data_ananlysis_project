@@ -75,9 +75,10 @@ indexOthers <- which(data$method != 'Pesticide' &
 
 mydata$method[indexOthers] <- 'All others'
 
+```
 
-str(mydata)
 
+```{r}
 ```
 
 # Introduction
