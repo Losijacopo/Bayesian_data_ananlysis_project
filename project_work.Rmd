@@ -32,6 +32,7 @@ library(devtools)
 library(brms)
 library(loo)
 library(KernSmooth)
+library(tableone)
 
 data <- read.csv("./suicide attempt data_2.csv", stringsAsFactors=FALSE)
 
@@ -230,6 +231,7 @@ mydata <- mydata[-indexUnkn,]
 
 ```{r}
 ncol(mydata) - 2
+
 ```
 
 ```{r}
@@ -237,15 +239,15 @@ ncol(mydata) - 2
 ## Create Stan data
 dat <- list(N        = nrow(mydata),
             p        = ncol(mydata) - 2,
-            died     = c(t(mydata$Died)),
-            urban    = c(t(mydata$Urban)),
-            year     = c(t(mydata$Year)),
-            month    = c(t(mydata$Season)),
-            sex      = c(t(mydata$Sex)),
-            age      = c(t(mydata$Age)),
-            edu      = c(t(mydata$Education)),
-            job      = c(t(mydata$Occupation)),
-            method   = c(t(mydata$method)))
+            died     = as.numeric(mydata$Died),
+            urban    = as.numeric(mydata$Urban),
+            year     = as.numeric(mydata$Year),
+            season   = as.numeric(mydata$Season),
+            sex      = as.numeric(mydata$Sex),
+            age      = as.numeric(mydata$Age),
+            edu      = as.numeric(mydata$Education),
+            job      = as.numeric(mydata$Occupation),
+            method   = as.numeric(mydata$method))
 
 ## Load Stan file
 fileName <- "./logistic_regression_model.stan"
@@ -259,13 +261,47 @@ cat(stan_code)
 resStan <- stan(file = 'logistic_regression_model.stan',
                 data = dat,
                 chains = 3, 
-                iter = 3000, 
-                warmup = 500)
+                iter = 1000, 
+                warmup = 500,
+                thin = 10)
+
+```
+
+```{r}
 
 # Show traceplot
 traceplot(resStan, pars = c("beta"), inc_warmup = TRUE)
+
+
+```
+
+## Frequentist approach 
+
+```{r}
+
+outcomeModel <- glm(as.numeric(Died) ~ as.numeric(Urban) + 
+                                       as.numeric(Year) + 
+                                       as.numeric(Season) + 
+                                       as.numeric(Sex) + 
+                                       as.numeric(Age) + 
+                                       as.numeric(Education) + 
+                                       as.numeric(Occupation) + 
+                                       as.numeric(method), data = mydata,
+                    family = binomial(link = "logit"))
+summary(outcomeModel)
+
 ```
 
 
+## Comparison
+
+```{r}
+## Bayesian
+print(resStan, pars = c("beta"))
+
+## Frequentist
+tableone::ShowRegTable(outcomeModel, exp = FALSE)
+
+```
 
 # Conclusions
