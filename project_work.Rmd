@@ -43,37 +43,104 @@ mydata <- data
 mydata$Season <- data$Month
 mydata$Month = NULL
 
+
+# Hospitalised
+
+indexHosp   <- which(data$Hospitalised == 'yes')
+indexNoHosp <- which(data$Hospitalised == 'no')
+
+mydata$Hospitalised[indexHosp]   <- 1    # 1 --> yes
+mydata$Hospitalised[indexNoHosp] <- 0    # 0 --> no
+
+
+# Died
+
+indexDied   <- which(data$Died == 'yes')
+indexNoDied <- which(data$Died == 'no')
+
+mydata$Died[indexDied]   <- 1    # 1 --> yes
+mydata$Died[indexNoDied] <- 0    # 0 --> no
+
+
+# Urban
+
+indexUrban   <- which(data$Urban == 'yes')
+indexNoUrban <- which(data$Urban == 'no')
+
+mydata$Urban[indexUrban]   <- 1    # 1 --> yes
+mydata$Urban[indexNoUrban] <- 0    # 0 --> no
+
+
+# Season
+
 indexSpring <- which(data$Month >= 3 & data$Month <= 5)
 indexSummer <- which(data$Month >= 6 & data$Month <= 8)
 indexAutumn <- which(data$Month >= 9 & data$Month <= 11)
 indexWinter <- which(data$Month == 12 | data$Month <= 2)
 
-mydata$Season[indexSpring] <- '1'  # 1 --> Spring
-mydata$Season[indexSummer] <- '2'  # 2 --> Summer
-mydata$Season[indexAutumn] <- '3'  # 3 --> Autumn
-mydata$Season[indexWinter] <- '4'  # 4 --> Winter
+mydata$Season[indexSpring] <- 1  # 1 --> Spring
+mydata$Season[indexSummer] <- 2  # 2 --> Summer
+mydata$Season[indexAutumn] <- 3  # 3 --> Autumn
+mydata$Season[indexWinter] <- 4  # 4 --> Winter
+
+
+# Sex
+
+indexMale   <- which(data$Sex == 'male')
+indexFemale <- which(data$Sex == 'female')
+
+mydata$Sex[indexMale]   <- 1    # 1 --> male
+mydata$Sex[indexFemale] <- 0    # 0 --> female
+
+
+# Age
 
 indexAgeOne   <- which(data$Age <= 34) 
 indexAgeTwo   <- which(data$Age >= 35 & data$Age <= 49)
 indexAgeThree <- which(data$Age >= 50 & data$Age <= 64)
 indexAgeFour  <- which(data$Age >= 65)
 
-mydata$Age[indexAgeOne]   <- '1'   # 1 --> <34
-mydata$Age[indexAgeTwo]   <- '2'   # 2 --> 35-49
-mydata$Age[indexAgeThree] <- '3'   # 3 --> 50-64
-mydata$Age[indexAgeFour]  <- '4'   # 4 --> >65
+mydata$Age[indexAgeOne]   <- 1   # 1 --> <34
+mydata$Age[indexAgeTwo]   <- 2   # 2 --> 35-49
+mydata$Age[indexAgeThree] <- 3   # 3 --> 50-64
+mydata$Age[indexAgeFour]  <- 4   # 4 --> >65
+
+
+# Education
+
+indexEduZero  <- which(data$Education == 'iliterate') 
+indexEduOne   <- which(data$Education == 'primary') 
+indexEduTwo   <- which(data$Education == 'Secondary')
+indexEduThree <- which(data$Education == 'Tertiary')
+
+mydata$Education[indexEduZero]   <- 0   # 0 --> iliterate
+mydata$Education[indexEduOne]   <- 1   # 1 --> primary
+mydata$Education[indexEduTwo] <- 2   # 2 --> Secondary
+mydata$Education[indexEduThree]  <- 3   # 3 --> Tertiary
+
+
+# Occupation
 
 indexFarm   <- which(data$Occupation == 'farming')
 indexNoFarm <- which(data$Occupation != 'farming')
 
-mydata$Occupation[indexFarm]   <- 1    # 1 --> framing
-mydata$Occupation[indexNoFarm] <- 2    # 2 --> non farming
+mydata$Occupation[indexFarm]   <- 1    # 1 --> farming
+mydata$Occupation[indexNoFarm] <- 0    # 0 --> non farming
 
-indexOthers <- which(data$method != 'Pesticide' &
-                     data$method != 'Other poison' &
-                     data$method != 'hanging')
 
-mydata$method[indexOthers] <- 'All others'
+# Method 
+
+indexPesticide <- which(data$method == 'Pesticide')
+indexPoison    <- which(data$method == 'Other poison')
+indexHanging    <- which(data$method == 'hanging')
+indexOthers    <- which(data$method != 'Pesticide' &
+                        data$method != 'Other poison' &
+                        data$method != 'hanging')
+
+mydata$method[indexPesticide] <- 1 # 1 --> Pesticide
+mydata$method[indexPoison]    <- 2 # 2 --> Other poison  
+mydata$method[indexHanging]   <- 3 # 3 --> hanging
+mydata$method[indexOthers]    <- 4 # 4 --> All others
 
 ```
 
@@ -171,5 +238,21 @@ cat(stan_code)
   
 \end{tabular}
 
+
+```{r}
+
+## Remove unknown labels
+
+indexUnknw1 <- which(mydata$Education == 'unknown')
+mydata <- mydata[-indexUnknw1,]
+indexUnkn <- which(mydata$Urban == 'unknown')
+mydata <- mydata[-indexUnkn,]
+
+```
+
+```{r}
+
+
+```
 
 # Conclusions
