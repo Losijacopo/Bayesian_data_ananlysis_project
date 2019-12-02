@@ -146,9 +146,6 @@ mydata$method[indexOthers]    <- 4 # 4 --> All others
 ```
 
 
-```{r}
-```
-
 # Introduction
 
 
@@ -229,10 +226,6 @@ mydata <- mydata[-indexUnkn,]
 
 ```
 
-```{r}
-ncol(mydata) - 2
-
-```
 
 ```{r}
 
@@ -304,4 +297,34 @@ tableone::ShowRegTable(outcomeModel, exp = FALSE)
 
 ```
 
+## Same clustering on the data
+
+Let us try to cluster the data using the specific year in order to do a prediction on the following year
+
+```{r}
+
+indexYear2009 <- which(mydata$Year == 2009)
+data_year_2009 <- mydata[indexYear2009,]
+
+indexYear2010 <- which(mydata$Year == 2010)
+data_year_2010 <- mydata[indexYear2010,]
+
+indexYear2011 <- which(mydata$Year == 2011)
+data_year_2011 <- mydata[indexYear2011,]
+```
+
+
+Then in this phase, in which we are working on testing different models, it is worth to take only some random samples from the data. As a matter of fact, the dataset that we have is big and thus the computation on the whole dataset will take a lot of time.
+
+Therefore, we will proceed as follows:
+* we will generate a vector of 50 random number taken from our dataset;
+* we will test the models with this data, that are sufficient for not loosing in generality;
+* we will run the final model on the whole dataset.
+
+```{r}
+
+random_index <- sample(mydata$Person_ID, size = 50, replace = TRUE)
+
+data_reduced <- mydata[random_index, ]
+```
 # Conclusions
