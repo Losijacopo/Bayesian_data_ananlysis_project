@@ -26,7 +26,9 @@ library(aaltobda)
 library(tinytex)
 library(MASS)
 library(mvtnorm)
+library(dplyr)
 library(ggplot2)
+library(easyGgplot2)
 library(rstan)
 library(devtools)
 library(brms)
@@ -226,21 +228,36 @@ mydata <- mydata[-indexUnkn,]
 
 ```
 
+Then in this phase, in which we are working on testing different models, it is worth to take only some random samples from the data. As a matter of fact, the dataset that we have is big and thus the computation on the whole dataset will take a lot of time.
+
+Therefore, we will proceed as follows:
+* we will generate a vector of 50 random number taken from our dataset;
+* we will test the models with this data, that are sufficient for not loosing in generality;
+* we will run the final model on the whole dataset.
+
+```{r}
+
+random_index <- sample(mydata$Person_ID, size = 50, replace = TRUE)
+
+data_reduced <- mydata[random_index, ]
+data_reduced <- na.omit(data_reduced)
+```
+
 
 ```{r}
 
 ## Create Stan data
-dat <- list(N        = nrow(mydata),
-            p        = ncol(mydata) - 2,
-            died     = as.numeric(mydata$Died),
-            urban    = as.numeric(mydata$Urban),
-            year     = as.numeric(mydata$Year),
-            season   = as.numeric(mydata$Season),
-            sex      = as.numeric(mydata$Sex),
-            age      = as.numeric(mydata$Age),
-            edu      = as.numeric(mydata$Education),
-            job      = as.numeric(mydata$Occupation),
-            method   = as.numeric(mydata$method))
+dat <- list(N        = nrow(data_reduced),
+            p        = ncol(data_reduced) - 2,
+            died     = as.numeric(data_reduced$Died),
+            urban    = as.numeric(data_reduced$Urban),
+            year     = as.numeric(data_reduced$Year),
+            season   = as.numeric(data_reduced$Season),
+            sex      = as.numeric(data_reduced$Sex),
+            age      = as.numeric(data_reduced$Age),
+            edu      = as.numeric(data_reduced$Education),
+            job      = as.numeric(data_reduced$Occupation),
+            method   = as.numeric(data_reduced$method))
 
 ## Load Stan file
 fileName <- "./logistic_regression_model.stan"
@@ -248,7 +265,7 @@ stan_code <- readChar(fileName, file.info(fileName)$size)
 cat(stan_code)
 ```
 
-```{r}
+```{r echo=FALSE}
 
 # Run Stan
 resStan <- stan(model_code = stan_code,
@@ -256,17 +273,60 @@ resStan <- stan(model_code = stan_code,
                 chains = 3, 
                 iter = 1000, 
                 warmup = 500,
-                thin = 10)
+                thin = 10,
+                seed = 1234)
 
 ```
 
 ```{r}
-
 # Show traceplot
-traceplot(resStan, pars = c("beta"), inc_warmup = TRUE)
+traceplot(resStan, pars = c('beta[3]','beta[4]', 'beta[5]', 
+                            'beta[6]', 'beta[7]', 'beta[8]',
+                            'beta[9]'), inc_warmup = TRUE)
+# Generate some scatter plots in order to see the correlations between parameters
+plot(extract(resStan)$beta[,3], extract(resStan)$beta[,7], main="Correlation between location and education",
+     xlab="Urban", ylab="Education")
+# qplot(extract(resStan)$beta[,3], bins = 30, geom = 'histogram', main='Histogram for Urban',
+#                         xlab = 'weigths for the coefficient', ylab = 'Occurrences',
+#                         col = I('red'))
 
+# overlay histogram, density and show the mean value
+# The plots of the most interesting parameters are presented.
+# Using the mean value it could be interesting to understand 
+# which weaknly informative priors can be designed
+
+plot_1 <- qplot(extract(resStan)$beta[,3], geom = 'blank', xlab = 'Values of weigth', ylab = 'Occurences', main='Urbans') +   
+  geom_histogram(aes(y = ..density..),col = I('red'), bins = 50) + 
+  geom_line(aes(y = ..density..), size = 1, col = I('blue'), stat = 'density', ) +
+  geom_vline(aes(xintercept=mean(extract(resStan)$beta[,3])), col=I('yellow'), linetype="dashed", size=1) 
+
+plot_2 <- qplot(extract(resStan)$beta[,5], geom = 'blank', xlab = 'Values of weigth', ylab = 'Occurences', main='Sex') +   
+  geom_histogram(aes(y = ..density..),col = I('red'), bins = 50) + 
+  geom_line(aes(y = ..density..), size = 1, col = I('blue'), stat = 'density', ) +
+  geom_vline(aes(xintercept=mean(extract(resStan)$beta[,5])), col=I('yellow'), linetype="dashed", size=1)
+
+plot_3 <- qplot(extract(resStan)$beta[,6], geom = 'blank', xlab = 'Values of weigth', ylab = 'Occurences', main='Age') +   
+  geom_histogram(aes(y = ..density..),col = I('red'), bins = 50) + 
+  geom_line(aes(y = ..density..), size = 1, col = I('blue'), stat = 'density', ) +
+  geom_vline(aes(xintercept=mean(extract(resStan)$beta[,6])), col=I('yellow'), linetype="dashed", size=1)
+
+plot_4 <- qplot(extract(resStan)$beta[,7], geom = 'blank', xlab = 'Values of weigth', ylab = 'Occurences', main='Education') +   
+  geom_histogram(aes(y = ..density..),col = I('red'), bins = 50) + 
+  geom_line(aes(y = ..density..), size = 1, col = I('blue'), stat = 'density', ) +
+  geom_vline(aes(xintercept=mean(extract(resStan)$beta[,7])), col=I('yellow'), linetype="dashed", size=1)
+
+plot_5 <- qplot(extract(resStan)$beta[,8], geom = 'blank', xlab = 'Values of weigth', ylab = 'Occurences', main='Occupation') +   
+  geom_histogram(aes(y = ..density..),col = I('red'), bins = 50) + 
+  geom_line(aes(y = ..density..), size = 1, col = I('blue'), stat = 'density', ) +
+  geom_vline(aes(xintercept=mean(extract(resStan)$beta[,8])), col=I('yellow'), linetype="dashed", size=1) 
+
+ggplot2.multiplot(plot_1,plot_2,plot_3,plot_4, plot_5, cols=3)
 
 ```
+
+From the analysis done above, and especially looking at the histogram, it is clear that the most important parameters that count in our analysis are: the fact that the people come from urbn or rural areas, then their education and occupation. As a matter of fact, the mean and the maximum values of the coeffcient related to those paramters have the bigger magnitude. This means that those parameters are weighted more in the multi regression function in the model.
+
+Therefore, for further analysis, it will be good to develop specific analysis using only these parameters, in order to have a more precise evalution considering only the most relevant parameters. 
 
 ## Frequentist approach 
 
@@ -313,18 +373,4 @@ indexYear2011 <- which(mydata$Year == 2011)
 data_year_2011 <- mydata[indexYear2011,]
 ```
 
-
-Then in this phase, in which we are working on testing different models, it is worth to take only some random samples from the data. As a matter of fact, the dataset that we have is big and thus the computation on the whole dataset will take a lot of time.
-
-Therefore, we will proceed as follows:
-* we will generate a vector of 50 random number taken from our dataset;
-* we will test the models with this data, that are sufficient for not loosing in generality;
-* we will run the final model on the whole dataset.
-
-```{r}
-
-random_index <- sample(mydata$Person_ID, size = 50, replace = TRUE)
-
-data_reduced <- mydata[random_index, ]
-```
 # Conclusions
