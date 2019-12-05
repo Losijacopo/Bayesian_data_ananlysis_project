@@ -32,6 +32,7 @@ library(devtools)
 library(brms)
 library(loo)
 library(KernSmooth)
+library(tableone)
 
 data <- read.csv("./suicide attempt data_2.csv", stringsAsFactors=FALSE)
 
@@ -114,8 +115,8 @@ indexEduTwo   <- which(data$Education == 'Secondary')
 indexEduThree <- which(data$Education == 'Tertiary')
 
 mydata$Education[indexEduZero]   <- 0   # 0 --> iliterate
-mydata$Education[indexEduOne]   <- 1   # 1 --> primary
-mydata$Education[indexEduTwo] <- 2   # 2 --> Secondary
+mydata$Education[indexEduOne]    <- 1   # 1 --> primary
+mydata$Education[indexEduTwo]    <- 2   # 2 --> Secondary
 mydata$Education[indexEduThree]  <- 3   # 3 --> Tertiary
 
 
@@ -144,9 +145,6 @@ mydata$method[indexOthers]    <- 4 # 4 --> All others
 
 ```
 
-
-```{r}
-```
 
 # Introduction
 
@@ -228,24 +226,33 @@ mydata <- mydata[-indexUnkn,]
 
 ```
 
-```{r}
-ncol(mydata) - 2
-```
 
 ```{r}
 
 ## Create Stan data
 dat <- list(N        = nrow(mydata),
             p        = ncol(mydata) - 2,
+<<<<<<< HEAD
             died     = c(t(mydata$Died)),
             urban    = c(t(mydata$Urban)),
             year     = c(t(mydata$Year)),
-            month    = c(t(mydata$Season)),
+            season   = c(t(mydata$Season)),
             sex      = c(t(mydata$Sex)),
             age      = c(t(mydata$Age)),
             edu      = c(t(mydata$Education)),
             job      = c(t(mydata$Occupation)),
             method   = c(t(mydata$method)))
+=======
+            died     = as.numeric(mydata$Died),
+            urban    = as.numeric(mydata$Urban),
+            year     = as.numeric(mydata$Year),
+            season   = as.numeric(mydata$Season),
+            sex      = as.numeric(mydata$Sex),
+            age      = as.numeric(mydata$Age),
+            edu      = as.numeric(mydata$Education),
+            job      = as.numeric(mydata$Occupation),
+            method   = as.numeric(mydata$method))
+>>>>>>> 07d96d8728790d0d97158fee1355c2d2b8919cb5
 
 ## Load Stan file
 fileName <- "./logistic_regression_model.stan"
@@ -256,16 +263,80 @@ cat(stan_code)
 ```{r}
 
 # Run Stan
-resStan <- stan(file = 'logistic_regression_model.stan',
+resStan <- stan(model_code = stan_code,
                 data = dat,
                 chains = 3, 
-                iter = 3000, 
-                warmup = 500)
+                iter = 1000, 
+                warmup = 500,
+                thin = 10)
+
+```
+
+```{r}
 
 # Show traceplot
 traceplot(resStan, pars = c("beta"), inc_warmup = TRUE)
+
+
+```
+
+## Frequentist approach 
+
+```{r}
+
+outcomeModel <- glm(as.numeric(Died) ~ as.numeric(Urban) + 
+                                       as.numeric(Year) + 
+                                       as.numeric(Season) + 
+                                       as.numeric(Sex) + 
+                                       as.numeric(Age) + 
+                                       as.numeric(Education) + 
+                                       as.numeric(Occupation) + 
+                                       as.numeric(method), data = mydata,
+                    family = binomial(link = "logit"))
+summary(outcomeModel)
+
 ```
 
 
+## Comparison
 
+```{r}
+## Bayesian
+print(resStan, pars = c("beta"))
+
+## Frequentist
+tableone::ShowRegTable(outcomeModel, exp = FALSE)
+
+```
+
+## Same clustering on the data
+
+Let us try to cluster the data using the specific year in order to do a prediction on the following year
+
+```{r}
+
+indexYear2009 <- which(mydata$Year == 2009)
+data_year_2009 <- mydata[indexYear2009,]
+
+indexYear2010 <- which(mydata$Year == 2010)
+data_year_2010 <- mydata[indexYear2010,]
+
+indexYear2011 <- which(mydata$Year == 2011)
+data_year_2011 <- mydata[indexYear2011,]
+```
+
+
+Then in this phase, in which we are working on testing different models, it is worth to take only some random samples from the data. As a matter of fact, the dataset that we have is big and thus the computation on the whole dataset will take a lot of time.
+
+Therefore, we will proceed as follows:
+* we will generate a vector of 50 random number taken from our dataset;
+* we will test the models with this data, that are sufficient for not loosing in generality;
+* we will run the final model on the whole dataset.
+
+```{r}
+
+random_index <- sample(mydata$Person_ID, size = 50, replace = TRUE)
+
+data_reduced <- mydata[random_index, ]
+```
 # Conclusions

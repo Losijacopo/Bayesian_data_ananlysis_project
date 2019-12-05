@@ -1,5 +1,3 @@
-// Logistic Regression Model
-
 data {
   // Define variables in data
   // Number of observations (an integer)
@@ -9,7 +7,7 @@ data {
   int<lower=0> p;
   
   // Variables
-  int died[N];
+  int  died[N];
   int<lower=0>  urban[N];
   int<lower=0>  year[N];
   int<lower=0>  season[N];
@@ -29,7 +27,6 @@ transformed parameters  {
   // Probability trasformation from linear predictor
   real<lower=0> odds[N];
   real<lower=0, upper=1> prob[N];
- 
   for (i in 1:N) {
     odds[i] = exp(beta[1] + beta[2]*urban[i]  + beta[3]*year[i] + 
                             beta[4]*season[i] + beta[5]*sex[i]  + 
