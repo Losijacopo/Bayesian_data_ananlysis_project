@@ -232,7 +232,6 @@ mydata <- mydata[-indexUnkn,]
 ## Create Stan data
 dat <- list(N        = nrow(mydata),
             p        = ncol(mydata) - 2,
-<<<<<<< HEAD
             died     = c(t(mydata$Died)),
             urban    = c(t(mydata$Urban)),
             year     = c(t(mydata$Year)),
@@ -242,17 +241,6 @@ dat <- list(N        = nrow(mydata),
             edu      = c(t(mydata$Education)),
             job      = c(t(mydata$Occupation)),
             method   = c(t(mydata$method)))
-=======
-            died     = as.numeric(mydata$Died),
-            urban    = as.numeric(mydata$Urban),
-            year     = as.numeric(mydata$Year),
-            season   = as.numeric(mydata$Season),
-            sex      = as.numeric(mydata$Sex),
-            age      = as.numeric(mydata$Age),
-            edu      = as.numeric(mydata$Education),
-            job      = as.numeric(mydata$Occupation),
-            method   = as.numeric(mydata$method))
->>>>>>> 07d96d8728790d0d97158fee1355c2d2b8919cb5
 
 ## Load Stan file
 fileName <- "./logistic_regression_model.stan"
