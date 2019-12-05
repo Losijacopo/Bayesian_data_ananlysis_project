@@ -281,13 +281,6 @@ cat(stan_code)
 # Run Stan
 resStan <- stan(model_code = stan_code,
                 data = dat,
-<<<<<<< HEAD
-                chains = 3, 
-                iter = 1000, 
-                warmup = 500,
-                thin = 10,
-                seed = 1234)
-=======
                 chains = 5, 
                 iter = 2000, 
                 warmup = 800,
@@ -296,12 +289,10 @@ resStan <- stan(model_code = stan_code,
                 seed = 12345,
                 control = list(adapt_delta = 0.95))
 print(resStan, pars = c('beta'))
->>>>>>> f37af421a4ca7e36f3df54866e0eed4bbd90c768
 
 ```
 
 ```{r}
-<<<<<<< HEAD
 # Show traceplot
 traceplot(resStan, pars = c('beta[3]','beta[4]', 'beta[5]', 
                             'beta[6]', 'beta[7]', 'beta[8]',
@@ -348,7 +339,8 @@ ggplot2.multiplot(plot_1,plot_2,plot_3,plot_4, plot_5, cols=3)
 ```
 
 From the analysis done above, and especially looking at the histogram, it is clear that the most important parameters that count in our analysis are: the fact that the people come from urbn or rural areas, then their education and occupation. As a matter of fact, the mean and the maximum values of the coeffcient related to those paramters have the bigger magnitude. This means that those parameters are weighted more in the multi regression function in the model.
-=======
+
+```{r}
 rows <- length(extract(resStan)$beta[,1])
 beta_matrix <- zeros(rows, ncol(data_reduced) - 2)
 

@@ -17,6 +17,7 @@ output:
 # This chunk just sets echo = TRUE as default (i.e. print all code)
 knitr::opts_chunk$set(echo = TRUE, tidy = FALSE)
 
+library(arules)
 library(magrittr)
 #library(XLConnect)
 library(rstan)
@@ -26,13 +27,16 @@ library(aaltobda)
 library(tinytex)
 library(MASS)
 library(mvtnorm)
+library(dplyr)
 library(ggplot2)
+library(easyGgplot2)
 library(rstan)
 library(devtools)
 library(brms)
 library(loo)
 library(KernSmooth)
 library(tableone)
+library(phonTools)
 
 data <- read.csv("./suicide attempt data_2.csv", stringsAsFactors=FALSE)
 
@@ -297,6 +301,17 @@ resStan <- stan(model_code = stan_code,
                 control = list(adapt_delta = 0.95))
 print(resStan, pars = c('beta'))
 
+```
+
+```{r}
+# Transform fitting over beta in a dataframe for the plots
+
+beta_matrix <- zeros(length(extract(resStan)$beta[,1]), ncol(data_reduced) - 2)
+
+for (i in 1:ncol(data_reduced) - 2)
+  beta_matrix[,i] = beta_matrix[,i] + extract(resStan)$beta[,i]
+
+beta_df <- as.data.frame(beta_matrix)
 ```
 
 ```{r}
