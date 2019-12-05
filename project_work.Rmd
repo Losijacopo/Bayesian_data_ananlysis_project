@@ -188,7 +188,7 @@ urban_women <- subset(data, data$Sex=="female" & data$Urban=="yes")
 ```
 ```{r}
 
-str(data)
+str(mydata)
 
 ```
 
@@ -232,15 +232,15 @@ mydata <- mydata[-indexUnkn,]
 ## Create Stan data
 dat <- list(N        = nrow(mydata),
             p        = ncol(mydata) - 2,
-            died     = c(t(mydata$Died)),
-            urban    = c(t(mydata$Urban)),
-            year     = c(t(mydata$Year)),
-            season   = c(t(mydata$Season)),
-            sex      = c(t(mydata$Sex)),
-            age      = c(t(mydata$Age)),
-            edu      = c(t(mydata$Education)),
-            job      = c(t(mydata$Occupation)),
-            method   = c(t(mydata$method)))
+            died     = as.numeric(mydata$Died),
+            urban    = as.numeric(mydata$Urban),
+            year     = as.numeric(mydata$Year),
+            season   = as.numeric(mydata$Season),
+            sex      = as.numeric(mydata$Sex),
+            age      = as.numeric(mydata$Age),
+            edu      = as.numeric(mydata$Education),
+            job      = as.numeric(mydata$Occupation),
+            method   = as.numeric(mydata$method))
 
 ## Load Stan file
 fileName <- "./logistic_regression_model.stan"
