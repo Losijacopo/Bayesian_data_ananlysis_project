@@ -1,0 +1,287 @@
+---
+title: "BDA - Project Work"
+author: "Jacopo Losi, Nicola Saljoughi"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+  word_document:
+    toc: yes
+    toc_depth: '1'
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '1'
+---
+```{r setup, include=FALSE}
+# This chunk just sets echo = TRUE as default (i.e. print all code)
+knitr::opts_chunk$set(echo = TRUE, tidy = FALSE)
+
+library(magrittr)
+#library(XLConnect)
+library(rstan)
+library(nnet)
+library(epitools)
+library(aaltobda)
+library(tinytex)
+library(MASS)
+library(mvtnorm)
+library(ggplot2)
+library(rstan)
+library(devtools)
+library(brms)
+library(loo)
+library(KernSmooth)
+library(tableone)
+
+data <- read.csv("./suicide attempt data_2.csv", stringsAsFactors=FALSE)
+
+```
+
+```{r echo=FALSE}
+## DATA => MYDATA
+# In this chunk we convert the data entries to make it 
+# treatable in the following analysis
+
+mydata <- data
+mydata$Season <- data$Month
+mydata$Month = NULL
+
+
+# Hospitalised
+
+indexHosp   <- which(data$Hospitalised == 'yes')
+indexNoHosp <- which(data$Hospitalised == 'no')
+
+mydata$Hospitalised[indexHosp]   <- 1    # 1 --> yes
+mydata$Hospitalised[indexNoHosp] <- 0    # 0 --> no
+
+
+# Died
+
+indexDied   <- which(data$Died == 'yes')
+indexNoDied <- which(data$Died == 'no')
+
+mydata$Died[indexDied]   <- 1    # 1 --> yes
+mydata$Died[indexNoDied] <- 0    # 0 --> no
+
+
+# Urban
+
+indexUrban   <- which(data$Urban == 'yes')
+indexNoUrban <- which(data$Urban == 'no')
+
+mydata$Urban[indexUrban]   <- 1    # 1 --> yes
+mydata$Urban[indexNoUrban] <- 0    # 0 --> no
+
+
+# Season
+
+indexSpring <- which(data$Month >= 3 & data$Month <= 5)
+indexSummer <- which(data$Month >= 6 & data$Month <= 8)
+indexAutumn <- which(data$Month >= 9 & data$Month <= 11)
+indexWinter <- which(data$Month == 12 | data$Month <= 2)
+
+mydata$Season[indexSpring] <- 1  # 1 --> Spring
+mydata$Season[indexSummer] <- 2  # 2 --> Summer
+mydata$Season[indexAutumn] <- 3  # 3 --> Autumn
+mydata$Season[indexWinter] <- 4  # 4 --> Winter
+
+
+# Sex
+
+indexMale   <- which(data$Sex == 'male')
+indexFemale <- which(data$Sex == 'female')
+
+mydata$Sex[indexMale]   <- 1    # 1 --> male
+mydata$Sex[indexFemale] <- 0    # 0 --> female
+
+
+# Age
+
+indexAgeOne   <- which(data$Age <= 34) 
+indexAgeTwo   <- which(data$Age >= 35 & data$Age <= 49)
+indexAgeThree <- which(data$Age >= 50 & data$Age <= 64)
+indexAgeFour  <- which(data$Age >= 65)
+
+mydata$Age[indexAgeOne]   <- 1   # 1 --> <34
+mydata$Age[indexAgeTwo]   <- 2   # 2 --> 35-49
+mydata$Age[indexAgeThree] <- 3   # 3 --> 50-64
+mydata$Age[indexAgeFour]  <- 4   # 4 --> >65
+
+
+# Education
+
+indexEduZero  <- which(data$Education == 'iliterate') 
+indexEduOne   <- which(data$Education == 'primary') 
+indexEduTwo   <- which(data$Education == 'Secondary')
+indexEduThree <- which(data$Education == 'Tertiary')
+
+mydata$Education[indexEduZero]   <- 0   # 0 --> iliterate
+mydata$Education[indexEduOne]    <- 1   # 1 --> primary
+mydata$Education[indexEduTwo]    <- 2   # 2 --> Secondary
+mydata$Education[indexEduThree]  <- 3   # 3 --> Tertiary
+
+
+# Occupation
+
+indexFarm   <- which(data$Occupation == 'farming')
+indexNoFarm <- which(data$Occupation != 'farming')
+
+mydata$Occupation[indexFarm]   <- 1    # 1 --> farming
+mydata$Occupation[indexNoFarm] <- 0    # 0 --> non farming
+
+
+# Method 
+
+indexPesticide <- which(data$method == 'Pesticide')
+indexPoison    <- which(data$method == 'Other poison')
+indexHanging    <- which(data$method == 'hanging')
+indexOthers    <- which(data$method != 'Pesticide' &
+                        data$method != 'Other poison' &
+                        data$method != 'hanging')
+
+mydata$method[indexPesticide] <- 1 # 1 --> Pesticide
+mydata$method[indexPoison]    <- 2 # 2 --> Other poison  
+mydata$method[indexHanging]   <- 3 # 3 --> hanging
+mydata$method[indexOthers]    <- 4 # 4 --> All others
+
+```
+
+\clearpage
+
+# Introduction
+This project is based on a study carried out in 2015 by a group of researchers to estimate the incidence of serious suicide attempts in Shandong, China, and to examine the factors associated with fatality among the attempters. \newline
+We have chosen to examine a dataset on suicides because it is a really important but often underconsidered problem in today's society. Not only this problem reflects a larger problem in a country societal system but it can also be a burden for hospital resources. We think that by being able to talk about it more openly and by truly trying to estimate its size and impact we can start to understand where the causes are rooted and what can be done to fight it. \newline
+We invite the reader to check the source section to further read about the setting and results of the named paper. 
+
+## Analysis Problem
+
+The objective of the project is to use the bayesian approach to develop models to evaluate the most influential factors related to serious suicide attempts (SSAs, defined as suicide attempts resulting in either death or hospitalisation) and being able to make predictions for the years following the period where the study was set. 
+
+## Data 
+Data from two independent health surveillance systems were linked, constituted by records of suicide deaths and hospitalisations that occured among residents in selected countries during 2009-2011.  
+The data set is constituted by 2571 observations of 11 variables:
+\begin{itemize}
+  \item \texttt{Person\_ID}: ID number, $1,...,2571$
+  \item \texttt{Hospitalised}: \textit{yes} or \textit{no}
+  \item \texttt{Died}: \textit{yes} or \textit{no}
+  \item \texttt{Urban}: \textit{yes}, \textit{no} or \textit{unknown}
+  \item \texttt{Year}: $2009$, $2010$ or $2011$
+  \item \texttt{Month}: $1,...,12$
+  \item \texttt{Sex}: \textit{female} or \textit{male}
+  \item \texttt{Age}: years
+  \item \texttt{Education}: \textit{iliterate}, \textit{primary}, \textit{Secondary}, \textit{Tertiary} or \textit{unknown}
+  \item \texttt{Occupation}: one of ten categories
+  \item \texttt{method}: one of nine methods
+\end{itemize}
+It is important to notice that the population in the study is predominantly rura and that the limitation of the study is that the incidence estimates are likely to be underestimated due to underreporting in both surveillance systems. 
+
+## Source
+
+Sun J, Guo X, Zhang J, Wang M, Jia C, Xu A (2015) "Incidence and fatality of serious suicide attempts in a predominantly rural population in Shandong, China: a public health surveillance study," BMJ Open 5(2): e006762. https://doi.org/10.1136/bmjopen-2014-006762
+
+Data downloaded via Dryad Digital Repository. https://doi.org/10.5061/dryad.r0v35
+
+\clearpage
+
+# Analysis
+In this section we will carry out our analysis following the bayesian approach, first developing two different models to analyse the data, assessing their convergence, doing posterior predictive checking, comparing them to choose the one that performs best and eventually use the obtained model to select the most influencial factors and answering our analysis problem. 
+
+```{r echo=FALSE}
+
+## Remove unknown labels
+
+indexUnknw1 <- which(mydata$Education == 'unknown')
+mydata <- mydata[-indexUnknw1,]
+indexUnkn <- which(mydata$Urban == 'unknown')
+mydata <- mydata[-indexUnkn,]
+
+```
+
+## Model description 
+In order to evaluate the factors which influence the probability of SSA the most it is an obvious chioice to develop a multiple logistic regression model.
+Two different models have been implemented which will then be compared in the following analysis:
+\begin{itemize}
+  \item \textbf{simple logistic regression model} with uniform priors and with no distinction between years and
+  \item \textbf{hierarchical logistic regression model} where we divide our data into three groups (one for each year) and then develop our model defining priors in a hierarchical manner. 
+\end{itemize}
+
+
+### Simple Logistic Regression Model
+
+
+### Hierarchical Logistic Regression Model
+
+
+## Prior choices
+
+
+## Stan Code
+Here we implement our models using \texttt{Stan}.
+```{r}
+
+## Create Stan data
+dat <- list(N        = nrow(mydata),
+            p        = ncol(mydata) - 2,
+            died     = as.numeric(mydata$Died),
+            urban    = as.numeric(mydata$Urban),
+            year     = as.numeric(mydata$Year),
+            season   = as.numeric(mydata$Season),
+            sex      = as.numeric(mydata$Sex),
+            age      = as.numeric(mydata$Age),
+            edu      = as.numeric(mydata$Education),
+            job      = as.numeric(mydata$Occupation),
+            method   = as.numeric(mydata$method))
+
+```
+
+### Simple model
+
+```{r}
+## SIMPLE LOGISTIC REGRESSION MODEL
+
+## Load Stan Model
+fileNameOne <- "./logistic_regression_model.stan"
+stan_code_simple <- readChar(fileNameOne, file.info(fileNameOne)$size)
+cat(stan_code_simple)
+
+```
+
+### Hierarchical model
+
+```{r}
+## HIERARCHICAL LOGISTIC REGRESSION MODEL
+
+## Load Stan Model
+fileNameTwo <- "./logistic_regression_model.stan"
+stan_code_hier <- readChar(fileNameTwo, file.info(fileNameTwo)$size)
+cat(stan_code_hier)
+
+```
+
+## Convergence Analysis
+
+
+## Posterior Predictive Checking 
+
+
+## Model Comparison
+
+
+## Sensitivity Analysis
+
+
+\clearpage
+
+
+# Conclusions
+
+
+## Problems encountered
+
+
+## Potential improvements
+
+
+
