@@ -17,6 +17,7 @@ output:
 # This chunk just sets echo = TRUE as default (i.e. print all code)
 knitr::opts_chunk$set(echo = TRUE, tidy = FALSE)
 
+library(arules)
 library(magrittr)
 #library(XLConnect)
 library(rstan)
@@ -35,6 +36,7 @@ library(brms)
 library(loo)
 library(KernSmooth)
 library(tableone)
+library(phonTools)
 
 data <- read.csv("./suicide attempt data_2.csv", stringsAsFactors=FALSE)
 
@@ -72,6 +74,15 @@ indexNoUrban <- which(data$Urban == 'no')
 
 mydata$Urban[indexUrban]   <- 1    # 1 --> yes
 mydata$Urban[indexNoUrban] <- 0    # 0 --> no
+
+#Year
+indexYear2009 <- which(mydata$Year == 2009)
+indexYear2010 <- which(mydata$Year == 2010)
+indexYear2011 <- which(mydata$Year == 2011)
+
+mydata$Year[indexYear2009] <- 1    # 1 --> 2009
+mydata$Year[indexYear2010] <- 2    # 2 --> 2010
+mydata$Year[indexYear2011] <- 3    # 3 --> 2011
 
 
 # Season
@@ -270,13 +281,31 @@ cat(stan_code)
 # Run Stan
 resStan <- stan(model_code = stan_code,
                 data = dat,
-                chains = 3, 
-                iter = 1000, 
-                warmup = 500,
+                chains = 5, 
+                iter = 2000, 
+                warmup = 800,
                 thin = 10,
-                seed = 1234)
+                refresh = 0,
+                seed = 12345,
+                control = list(adapt_delta = 0.95))
+print(resStan, pars = c('beta'))
 
 ```
+
+```{r}
+rows <- length(extract(resStan)$beta[,1])
+beta_matrix <- zeros(rows, ncol(data_reduced) - 2)
+
+for (i in 1:ncol(data_reduced) - 2){
+  beta_matrix[,i] <- beta_matrix[,i] + extract(resStan)$beta[,i]
+
+}
+
+beta_df <- as.data.frame(beta_matrix)
+
+
+```
+
 
 ```{r}
 # Show traceplot
@@ -284,11 +313,27 @@ traceplot(resStan, pars = c('beta[3]','beta[4]', 'beta[5]',
                             'beta[6]', 'beta[7]', 'beta[8]',
                             'beta[9]'), inc_warmup = TRUE)
 # Generate some scatter plots in order to see the correlations between parameters
-plot(extract(resStan)$beta[,3], extract(resStan)$beta[,7], main="Correlation between location and education",
-     xlab="Urban", ylab="Education")
-# qplot(extract(resStan)$beta[,3], bins = 30, geom = 'histogram', main='Histogram for Urban',
-#                         xlab = 'weigths for the coefficient', ylab = 'Occurrences',
-#                         col = I('red'))
+scatter_1 <- ggplot(beta_df, aes(x=V3, y=V7)) +
+                    ggtitle("Correlation between location and education") +
+                    xlab("Urban") + ylab("Education") +
+             geom_point(size=1, shape=23) +
+             geom_smooth(method=lm, linetype="dashed", color="darkred", fill="blue")
+
+scatter_2 <- ggplot(beta_df, aes(x=V3, y=V8)) +
+                    ggtitle("Correlation between location and occuption") +
+                    xlab("Urban") + ylab("Occupation") +
+             geom_point(size=1, shape=23) +
+             geom_smooth(method=lm, linetype="dashed", color="darkred", fill="blue")
+
+scatter_3 <- ggplot(beta_df, aes(x=V5, y=V6)) +
+                    ggtitle("Correlation between gender and age") +
+                    xlab("Gender") + ylab("Age") +
+             geom_point(size=1, shape=23) +
+             geom_smooth(method=lm, linetype="dashed", color="darkred", fill="blue")
+
+
+ggplot2.multiplot(scatter_1,scatter_2,scatter_3, cols=1)
+
 
 # overlay histogram, density and show the mean value
 # The plots of the most interesting parameters are presented.
@@ -324,7 +369,7 @@ ggplot2.multiplot(plot_1,plot_2,plot_3,plot_4, plot_5, cols=3)
 
 ```
 
-From the analysis done above, and especially looking at the histogram, it is clear that the most important parameters that count in our analysis are: the fact that the people come from urbn or rural areas, then their education and occupation. As a matter of fact, the mean and the maximum values of the coeffcient related to those paramters have the bigger magnitude. This means that those parameters are weighted more in the multi regression function in the model.
+From the analysis done above, and especially looking at the histogram, it is clear that the most important parameters that count in our analysis are: the fact that the people come from urban or rural areas, then their education, occupation and partially if they are man or woman. As a matter of fact, the mean and the maximum values of the coeffcient related to those paramters have the bigger magnitude. This means that those parameters are weighted more in the multi regression function in the model.
 
 Therefore, for further analysis, it will be good to develop specific analysis using only these parameters, in order to have a more precise evalution considering only the most relevant parameters. 
 
