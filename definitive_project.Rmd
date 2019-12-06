@@ -43,6 +43,9 @@ data <- read.csv("./suicide attempt data_2.csv", stringsAsFactors=FALSE)
 
 ```
 
+
+
+
 ```{r echo=FALSE}
 ## DATA => MYDATA
 # In this chunk we convert the data entries to make it 
@@ -160,18 +163,36 @@ mydata$method[indexPoison]    <- 2 # 2 --> Other poison
 mydata$method[indexHanging]   <- 3 # 3 --> hanging
 mydata$method[indexOthers]    <- 4 # 4 --> All others
 
+
+## Remove unknown labels
+
+indexUnknw1 <- which(mydata$Education == 'unknown')
+mydata <- mydata[-indexUnknw1,]
+indexUnkn <- which(mydata$Urban == 'unknown')
+mydata <- mydata[-indexUnkn,]
+
 ```
 
+
+
+
 \clearpage
+
+
+
 
 # Introduction
 This project is based on a study carried out in 2015 by a group of researchers to estimate the incidence of serious suicide attempts in Shandong, China, and to examine the factors associated with fatality among the attempters. \newline
 We have chosen to examine a dataset on suicides because it is a really important but often underconsidered problem in today's society. Not only this problem reflects a larger problem in a country societal system but it can also be a burden for hospital resources. We think that by being able to talk about it more openly and by truly trying to estimate its size and impact we can start to understand where the causes are rooted and what can be done to fight it. \newline
 We invite the reader to check the source section to further read about the setting and results of the named paper. 
 
+
+
 ## Analysis Problem
 
 The objective of the project is to use the bayesian approach to develop models to evaluate the most influential factors related to serious suicide attempts (SSAs, defined as suicide attempts resulting in either death or hospitalisation) and being able to make predictions for the years following the period where the study was set. 
+
+
 
 ## Data 
 Data from two independent health surveillance systems were linked, constituted by records of suicide deaths and hospitalisations that occured among residents in selected countries during 2009-2011.  
@@ -191,59 +212,60 @@ The data set is constituted by 2571 observations of 11 variables:
 \end{itemize}
 It is important to notice that the population in the study is predominantly rura and that the limitation of the study is that the incidence estimates are likely to be underestimated due to underreporting in both surveillance systems. 
 
+
+
+
 ## Source
 
 Sun J, Guo X, Zhang J, Wang M, Jia C, Xu A (2015) "Incidence and fatality of serious suicide attempts in a predominantly rural population in Shandong, China: a public health surveillance study," BMJ Open 5(2): e006762. https://doi.org/10.1136/bmjopen-2014-006762
 
 Data downloaded via Dryad Digital Repository. https://doi.org/10.5061/dryad.r0v35
 
+
+
+
 \clearpage
 
+
+
+
 # Analysis
-In this section we will carry out our analysis following the bayesian approach, first developing two different models to analyse the data, assessing their convergence, doing posterior predictive checking, comparing them to choose the one that performs best and eventually use the obtained model to select the most influencial factors and answering our analysis problem. 
+In this section we will carry out our analysis following the bayesian approach. First we will develop a multiple logistic regression model using all the variables, after that we will do variable selection to determine which are the most influential factors and develop a second multiple logistic regression model using the selected variables. After that, we will assess the convergence and efficiency of the models, do posterior predictive checking and compare the models. To conclude we carry out sensitivity analysis with respect to prior choices and eventually andwer our analysis problem. 
 
-```{r echo=FALSE}
 
-## Remove unknown labels
-
-indexUnknw1 <- which(mydata$Education == 'unknown')
-mydata <- mydata[-indexUnknw1,]
-indexUnkn <- which(mydata$Urban == 'unknown')
-mydata <- mydata[-indexUnkn,]
-
-```
-
-```{r}
-
-random_index <- sample(mydata$Person_ID, size = 50, replace = TRUE)
-
-data_reduced <- mydata[random_index, ]
-data_reduced <- na.omit(data_reduced)
-```
 
 
 ## Model description 
 In order to evaluate the factors which influence the probability of SSA the most it is an obvious chioice to develop a multiple logistic regression model.
 Two different models have been implemented which will then be compared in the following analysis:
 \begin{itemize}
-  \item \textbf{simple logistic regression model} with uniform priors and with no distinction between years and
-  \item \textbf{hierarchical logistic regression model} where we divide our data into three groups (one for each year) and then develop our model defining priors in a hierarchical manner. 
+  \item \textbf{Full logistic regression model} where all the parameters are included
+  \item \textbf{Reduced logistic regression model} that only includes the parameters selected in the variable selection phase. 
 \end{itemize}
 
 
-### Simple Logistic Regression Model
 
 
-### Hierarchical Logistic Regression Model
+### Full Logistic Regression Model
+
+
+
+
+
+### Reduced Logistic Regression Model
+
+
 
 
 ## Prior choices
 
 
-## Stan Code
-Here we implement our models using \texttt{Stan}.
+
+## Code 
 
 ### Data loading 
+
+First of all we load the data. Notice that some processing was done on the original data removing samples with missing entries (that resulted to constitute less than the 6 % of the dataset) and turning labels from strings into integers. 
 ```{r}
 
 ## Create Stan data
@@ -261,12 +283,20 @@ dat <- list(N        = nrow(mydata),
 
 ```
 
-Then in this phase, in which we are working on testing different models, it is worth to take only some random samples from the data. As a matter of fact, the dataset that we have is big and thus the computation on the whole dataset will take a lot of time.
+In this phase we are working on testing different models, therefore it is worth to take only some random samples from the data. As a matter of fact, the dataset that we have is big and thus the computation on the whole dataset will take a lot of time.
 
 Therefore, we will proceed as follows:
 * we will generate a vector of 50 random number taken from our dataset;
 * we will test the models with this data, that are sufficient for not loosing in generality;
 * we will run the final model on the whole dataset.
+
+```{r}
+
+random_index <- sample(mydata$Person_ID, size = 50, replace = TRUE)
+
+data_reduced <- mydata[random_index, ]
+data_reduced <- na.omit(data_reduced)
+```
 
 ```{r}
 
@@ -285,29 +315,29 @@ dat_red <- list(N    = nrow(data_reduced),
 
 ```
 
-## Simple model
-Here we implement a simpe logistic regression model. 
+
+### Full logistic regression model
+Here we start by implementing the full logistic regression model.  
 
 ```{r}
-## SIMPLE LOGISTIC REGRESSION MODEL
+## FULL LOGISTIC REGRESSION MODEL
 
 ## Load Stan Model
 fileNameOne <- "./logistic_regression_model.stan"
-stan_code_simple <- readChar(fileNameOne, file.info(fileNameOne)$size)
-cat(stan_code_simple)
+stan_code_full <- readChar(fileNameOne, file.info(fileNameOne)$size)
+cat(stan_code_full)
 
 ```
-We notice that the number of factors is really high and it is going to make the models unnecessarily complex, therefore before implementing the hierarchical model we need to evaluate the most influential factors (and check their correlation) and then use these factors to build our models. These models are reported at the end of this selection phase in the section 'Definitive models'. 
 
 ### Stan Code Running 
-The Stan models are run by using ...
+The Stan models are run by using five chains constituted by 2000 iterations, a warmup length of 800 iterations and a thin equal to 10. Thin is a positive integer that specifies the period for saving samples; it is set by default = 1, and it is normally left to defaults. In our case though our posterior distribution takes up a lot of memory even when using a reduced dataset and we require a large numer of iteration to achieve effective sample size and therefore we decide to set it to 10 in this phase. 
 
 ```{r echo=FALSE}
 ## SIMPLE LOGISTIC REGRESSION MODEL
 
 # Run Stan
-resStan <- stan(model_code = stan_code_simple,
-                data = dat,
+resStanFull <- stan(model_code = stan_code_full,
+                data = dat_red,
                 chains = 5, 
                 iter = 2000, 
                 warmup = 800,
@@ -315,29 +345,32 @@ resStan <- stan(model_code = stan_code_simple,
                 refresh = 0,
                 seed = 12345,
                 control = list(adapt_delta = 0.95))
-print(resStan, pars = c('beta'))
+print(resStanFull, pars = c('beta'))
 
 ```
 
-## Factors selection 
-In this section we will evaluate the most influential factors and their correlation in order to select the most descriptive ones that will be used to contruct our models.\newline
+
+### Variable selection 
+In this section we will evaluate the most influential factors and their correlation in order to select the most descriptive ones that will be used to contruct our second model (the reduced logistic regression model).\newline
 First of all we process our data:
 ```{r}
 # Transform fitting over beta in a dataframe for the plots
 
-beta_matrix <- zeros(length(extract(resStan)$beta[,1]), ncol(data_reduced) - 2)
+beta_matrix <- zeros(length(extract(resStanFull)$beta[,1]), ncol(data_reduced) - 2)
 
 for (i in 1:ncol(data_reduced) - 2)
-  beta_matrix[,i] = beta_matrix[,i] + extract(resStan)$beta[,i]
+  beta_matrix[,i] = beta_matrix[,i] + extract(resStanFull)$beta[,i]
 
 beta_df <- as.data.frame(beta_matrix)
 ```
+
 Now we show traceplots and generate scatter plots in order to evaluate the correlation between the parameters:
+
 ```{r}
 # Show traceplot
-traceplot(resStan, pars = c('beta[3]','beta[4]', 'beta[5]', 
-                            'beta[6]', 'beta[7]', 'beta[8]',
-                            'beta[9]'), inc_warmup = TRUE)
+traceplot(resStanFull, pars = c('beta[3]','beta[4]', 'beta[5]', 
+                                'beta[6]', 'beta[7]', 'beta[8]',
+                                'beta[9]'), inc_warmup = TRUE)
 # Generate some scatter plots in order to see the correlations between parameters
 scatter_1 <- ggplot(beta_df, aes(x=V3, y=V7)) +
                     ggtitle("Correlation between location and education") +
@@ -363,30 +396,35 @@ ggplot2.multiplot(scatter_1,scatter_2,scatter_3, cols=1)
 Now we overlay histogram, density and mean value of the parameters. The most interesting plots are presented; using the mean value is interesting since we can understand which weakly informative priors can be designed. 
 ```{r}
 
-plot_1 <- qplot(extract(resStan)$beta[,3], geom = 'blank', xlab = 'Values of weigth', ylab = 'Occurences', main='Urbans') +   
+plot_1 <- qplot(extract(resStanFull)$beta[,3], geom = 'blank',
+                xlab = 'Values of weigth', ylab = 'Occurences', main='Urbans') +   
   geom_histogram(aes(y = ..density..),col = I('red'), bins = 50) + 
   geom_line(aes(y = ..density..), size = 1, col = I('blue'), stat = 'density', ) +
-  geom_vline(aes(xintercept=mean(extract(resStan)$beta[,3])), col=I('yellow'), linetype="dashed", size=1) 
+  geom_vline(aes(xintercept=mean(extract(resStanFull)$beta[,3])), col=I('yellow'), linetype="dashed", size=1) 
 
-plot_2 <- qplot(extract(resStan)$beta[,5], geom = 'blank', xlab = 'Values of weigth', ylab = 'Occurences', main='Sex') +   
+plot_2 <- qplot(extract(resStanFull)$beta[,5], geom = 'blank',
+                xlab = 'Values of weigth', ylab = 'Occurences', main='Sex') +   
   geom_histogram(aes(y = ..density..),col = I('red'), bins = 50) + 
   geom_line(aes(y = ..density..), size = 1, col = I('blue'), stat = 'density', ) +
-  geom_vline(aes(xintercept=mean(extract(resStan)$beta[,5])), col=I('yellow'), linetype="dashed", size=1)
+  geom_vline(aes(xintercept=mean(extract(resStanFull)$beta[,5])), col=I('yellow'), linetype="dashed", size=1)
 
-plot_3 <- qplot(extract(resStan)$beta[,6], geom = 'blank', xlab = 'Values of weigth', ylab = 'Occurences', main='Age') +   
+plot_3 <- qplot(extract(resStanFull)$beta[,6], geom = 'blank',
+                xlab = 'Values of weigth', ylab = 'Occurences', main='Age') +   
   geom_histogram(aes(y = ..density..),col = I('red'), bins = 50) + 
   geom_line(aes(y = ..density..), size = 1, col = I('blue'), stat = 'density', ) +
-  geom_vline(aes(xintercept=mean(extract(resStan)$beta[,6])), col=I('yellow'), linetype="dashed", size=1)
+  geom_vline(aes(xintercept=mean(extract(resStanFull)$beta[,6])), col=I('yellow'), linetype="dashed", size=1)
 
-plot_4 <- qplot(extract(resStan)$beta[,7], geom = 'blank', xlab = 'Values of weigth', ylab = 'Occurences', main='Education') +   
+plot_4 <- qplot(extract(resStanFull)$beta[,7], geom = 'blank',
+                xlab = 'Values of weigth', ylab = 'Occurences', main='Education') +   
   geom_histogram(aes(y = ..density..),col = I('red'), bins = 50) + 
   geom_line(aes(y = ..density..), size = 1, col = I('blue'), stat = 'density', ) +
-  geom_vline(aes(xintercept=mean(extract(resStan)$beta[,7])), col=I('yellow'), linetype="dashed", size=1)
+  geom_vline(aes(xintercept=mean(extract(resStanFull)$beta[,7])), col=I('yellow'), linetype="dashed", size=1)
 
-plot_5 <- qplot(extract(resStan)$beta[,8], geom = 'blank', xlab = 'Values of weigth', ylab = 'Occurences', main='Occupation') +   
+plot_5 <- qplot(extract(resStanFull)$beta[,8], geom = 'blank',
+                xlab = 'Values of weigth', ylab = 'Occurences', main='Occupation') +   
   geom_histogram(aes(y = ..density..),col = I('red'), bins = 50) + 
   geom_line(aes(y = ..density..), size = 1, col = I('blue'), stat = 'density', ) +
-  geom_vline(aes(xintercept=mean(extract(resStan)$beta[,8])), col=I('yellow'), linetype="dashed", size=1) 
+  geom_vline(aes(xintercept=mean(extract(resStanFull)$beta[,8])), col=I('yellow'), linetype="dashed", size=1) 
 
 ggplot2.multiplot(plot_1,plot_2,plot_3,plot_4, plot_5, cols=3)
 
@@ -396,7 +434,10 @@ From the analysis done above, and especially looking at the histogram, it is cle
 
 Therefore, for further analysis, it will be good to develop specific analysis using only these parameters, in order to have a more precise evalution considering only the most relevant parameters. 
 
-## Frequentist approach 
+
+
+
+### Frequentist approach 
 
 ```{r}
 
@@ -413,18 +454,23 @@ summary(outcomeModel)
 
 ```
 
-## Comparison
+
+
+
+### Comparison
 
 ```{r}
 ## Bayesian
-print(resStan, pars = c("beta"))
+print(resStanFull, pars = c("beta"))
 
 ## Frequentist
 tableone::ShowRegTable(outcomeModel, exp = FALSE)
 
 ```
 
-## Same clustering on the data
+
+
+### Some clustering on the data
 
 Let us try to cluster the data using the specific year in order to do a prediction on the following year
 
@@ -440,13 +486,27 @@ indexYear2011 <- which(mydata$Year == 2011)
 data_year_2011 <- mydata[indexYear2011,]
 ```
 
-## Definitive models
 
-## Simple model
-Here we implement a simpe logistic regression model. 
+
+
+## Full logistic regression model 
+For completeness we report here the full model once again. 
+```{r}
+## FULL LOGISTIC REGRESSION MODEL
+
+## Load Stan Model
+fileNameOne <- "./logistic_regression_model.stan"
+stan_code_full <- readChar(fileNameOne, file.info(fileNameOne)$size)
+cat(stan_code_full)
+
+```
+
+
+## Reduced logistic regression model
+We can now implement the reduced logistic regression model using the selected parameters. 
 
 ```{r}
-## SIMPLE LOGISTIC REGRESSION MODEL
+## REDUCED LOGISTIC REGRESSION MODEL
 
 ## Load Stan Model
 fileNameOneDef <- "./logistic_regression_model_def.stan"
@@ -455,17 +515,12 @@ cat(stan_code_simple_def)
 
 ```
 
-## Hierarchical model
-```{r}
-## HIERARCHICAL LOGISTIC REGRESSION MODEL
 
-## Load Stan Model
-fileNameTwoDef <- "./logistic_regression_model_def.stan"
-stan_code_hier_def <- readChar(fileNameTwoDef, file.info(fileNameTwoDef)$size)
-cat(stan_code_hier_def)
 
-```
+
 ## Stan Code Running
+Now we are going to run the model on the full dataset. \newline
+First we define the Stan data to run the second (reduced) model. 
 ```{r}
 
 ## Create Stan data
@@ -477,20 +532,39 @@ dat_def <- list(N        = nrow(mydata),
                 edu      = as.numeric(mydata$Education))
 
 ```
+We first run the full model. The settings are the same as before except that now we are using the full dataset and default value for thin. 
 ```{r echo=FALSE}
 ## SIMPLE LOGISTIC REGRESSION MODEL
 
 # Run Stan
-resStan <- stan(model_code = stan_code_simple_def,
-                data = dat_def,
+resStanFull <- stan(model_code = stan_code_full,
+                data = dat,
                 chains = 5, 
                 iter = 2000, 
                 warmup = 800,
-                thin = 10,
+                thin = 1,
                 refresh = 0,
                 seed = 12345,
                 control = list(adapt_delta = 0.95))
-print(resStan, pars = c('beta'))
+print(resStanFull, pars = c('beta'))
+
+```
+
+Now we run the reduced order model..
+```{r echo=FALSE}
+## REDUCED LOGISTIC REGRESSION MODEL
+
+# Run Stan
+resStanRed <- stan(model_code = stan_code_simple_def,
+                  data = dat_def,
+                  chains = 5, 
+                  iter = 2000, 
+                  warmup = 800,
+                  thin = 1,
+                  refresh = 0,
+                  seed = 12345,
+                  control = list(adapt_delta = 0.95))
+print(resStanRed, pars = c('beta'))
 
 ```
 
@@ -500,16 +574,30 @@ In this section we are going to analyse the implemented models, both in terms of
 
 ### R-hat
 R-hat convergence diagnostic compares between- and within-chain estimates for model parameters and other univariate quantities of interest. If chains have not mixed well R-hat is larger than 1. In practical terms, it is good practice to use at least four chains and using the sample if R-hat is less than 1.05. \newline
+We can see from the result of \texttt{print(fit)} we have just displayed that all the Rhat values are equal to one for both the models and therefore we have convergence. 
 
-```{r}
-max(rhat(resStan))
-```
 
 ### HMC
-Here we compute convergence diagnostic specific to Hamiltonian Monte Carlo, and in particular divergences and tree depth. 
+Here we compute convergence diagnostic specific to Hamiltonian Monte Carlo, and in particular divergences and tree depth.\newline
+The following code computes the diagnostic for the full model:
+```{r, fig.width=8, fig.height=5, warning=FALSE}
+## Full model HMC diagnostic
+
+check_hmc_diagnostics(resStanFull)
+```
+As we can see none of the interations ended with a divergence nor saturated the maximum tree depth. \newline
+Now we compute the diagnostic for the reduced model:
+```{r, fig.width=8, fig.height=5, warning=FALSE}
+## Reduced model HMC diagnostic
+
+check_hmc_diagnostics(resStanRed)
+```
+Also for the reduced model none of the iterations ended with a divergence nor saturated the maximum tree depth. 
 
 ### ESS
-Effective sample size (ESS) measures the amount by which autocorrelation within the chains increases uncertainty in estimates. 
+Effective sample size (ESS) measures the amount by which autocorrelation within the chains increases uncertainty in estimates. \newline
+As for the Rhat values we can directly observe the effective sample size values of the chains using the command \texttt{print(fit)}, already used. We can see that the sample size values are all sufficiently high for both model. 
+
 
 
 ## Posterior Predictive Checking 
