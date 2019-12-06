@@ -17,9 +17,8 @@ output:
 # This chunk just sets echo = TRUE as default (i.e. print all code)
 knitr::opts_chunk$set(echo = TRUE, tidy = FALSE)
 
-library(arules)
 library(magrittr)
-#library(XLConnect)
+library(arules)
 library(rstan)
 library(nnet)
 library(epitools)
@@ -37,6 +36,7 @@ library(loo)
 library(KernSmooth)
 library(tableone)
 library(phonTools)
+library(rcompanion)
 
 data <- read.csv("./suicide attempt data_2.csv", stringsAsFactors=FALSE)
 
@@ -468,3 +468,155 @@ data_year_2011 <- mydata[indexYear2011,]
 ```
 
 # Conclusions
+
+```{r}
+
+datFile <- "suicide attempt data_2.csv"
+datCsv <- read.csv(datFile, stringsAsFactors=FALSE)
+datSet <- as.data.frame(datCsv)
+
+## Remove unknown labels
+
+indexUnkn_1 <- which(datSet$Education == 'unknown')
+indexUnkn_2 <- which(datSet$Urban == 'unknown')
+indexUnkn_3 <- which(datSet$Occupation == 'others/unknown')
+datSet <- datSet[-c(indexUnkn_1, indexUnkn_2,indexUnkn_3),]
+
+datSet$Month = NULL
+
+# Hospitalised
+indexHosp   <- which(datSet$Hospitalised == 'yes')
+indexNoHosp <- which(datSet$Hospitalised == 'no')
+datSet$Hospitalised[indexHosp]   <- 1    # 1 --> yes
+datSet$Hospitalised[indexNoHosp] <- 0    # 0 --> no
+
+
+# Died
+indexDied   <- which(datSet$Died == 'yes')
+indexNoDied <- which(datSet$Died == 'no')
+datSet$Died[indexDied]   <- 1    # 1 --> yes
+datSet$Died[indexNoDied] <- 0    # 0 --> no
+
+
+# Urban
+indexUrban   <- which(datSet$Urban == 'yes')
+indexNoUrban <- which(datSet$Urban == 'no')
+datSet$Urban[indexUrban]   <- 1    # 1 --> yes
+datSet$Urban[indexNoUrban] <- 0    # 0 --> no
+
+#Year
+indexYear2009 <- which(datSet$Year == 2009)
+indexYear2010 <- which(datSet$Year == 2010)
+indexYear2011 <- which(datSet$Year == 2011)
+datSet$Year[indexYear2009] <- 1    # 1 --> 2009
+datSet$Year[indexYear2010] <- 2    # 2 --> 2010
+datSet$Year[indexYear2011] <- 3    # 3 --> 2011
+
+# Sex
+indexMale   <- which(datSet$Sex == 'male')
+indexFemale <- which(datSet$Sex == 'female')
+datSet$Sex[indexMale]   <- 1    # 1 --> male
+datSet$Sex[indexFemale] <- 0    # 0 --> female
+
+# Education
+indexEduZero  <- which(datSet$Education == 'iliterate') 
+indexEduOne   <- which(datSet$Education == 'primary') 
+indexEduTwo   <- which(datSet$Education == 'Secondary')
+indexEduThree <- which(datSet$Education == 'Tertiary')
+
+datSet$Education[indexEduZero]   <- 0   # 0 --> iliterate
+datSet$Education[indexEduOne]    <- 1   # 1 --> primary
+datSet$Education[indexEduTwo]    <- 2   # 2 --> Secondary
+datSet$Education[indexEduThree]  <- 3   # 3 --> Tertiary
+
+
+# Occupation
+indexFarm   <- which(datSet$Occupation == 'farming')
+indexNoFarm <- which(datSet$Occupation != 'farming')
+
+datSet$Occupation[indexFarm]   <- 1    # 1 --> farming
+datSet$Occupation[indexNoFarm] <- 0    # 0 --> non farming
+
+
+# Method 
+indexPesticide <- which(datSet$method == 'Pesticide')
+indexPoison    <- which(datSet$method == 'Other poison')
+indexHanging   <- which(datSet$method == 'hanging')
+indexOthers    <- which(datSet$method != 'Pesticide' &
+                        datSet$method != 'Other poison' &
+                        datSet$method != 'hanging')
+
+datSet$method[indexPesticide] <- 1 # 1 --> Pesticide
+datSet$method[indexPoison]    <- 2 # 2 --> Other poison  
+datSet$method[indexHanging]   <- 3 # 3 --> hanging
+datSet$method[indexOthers]    <- 4 # 4 --> All others
+
+
+qplot(datSet$Age, geom = 'blank', xlab = 'Values of weigth', ylab = 'Occurences', main='Urbans') +   
+  geom_histogram(aes(y = ..density..),col = I('red'), bins = 50) + 
+  geom_line(aes(y = ..density..), size = 1, col = I('blue'), stat = 'density', ) +
+  geom_vline(aes(xintercept=mean(datSet$Age)), col=I('yellow'), linetype="dashed", size=1) 
+```
+
+
+```{r}
+
+data_4_fit <- list(N = nrow(datSet),
+                   p = 6,
+                   age = as.numeric(datSet$Age),
+                   died = as.numeric(datSet$Died),
+                   sex = as.numeric(datSet$Sex),
+                   job = as.numeric(datSet$Occupation),
+                   urban = as.numeric(datSet$Urban),
+                   edu = as.numeric(datSet$Education))
+
+
+fileName <- "./stan_model_with_prior.stan"
+stan_code <- readChar(fileName, file.info(fileName)$size)
+cat(stan_code)
+
+# Run Stan
+fitStan <- stan(model_code = stan_code,
+                data = data_4_fit,
+                chains = 5, 
+                iter = 2000, 
+                warmup = 800,
+                thin = 10,
+                refresh = 0,
+                seed = 12345,
+                control = list(adapt_delta = 0.95))
+print(fitStan, pars = c('beta', 'sigma'))
+
+
+```
+
+```{r}
+
+log_like_model <- extract_log_lik(fitStan, merge_chains = FALSE)
+r_eff <- relative_eff(exp(log_like_model))
+loo_mod <- loo(log_like_model, r_eff = r_eff)
+print(loo_mod)
+plot(loo_mod)
+elpd_loo_mod <- loo_mod$estimates[1]
+elpd_loo_mod
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
