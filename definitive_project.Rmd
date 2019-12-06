@@ -17,27 +17,26 @@ output:
 # This chunk just sets echo = TRUE as default (i.e. print all code)
 knitr::opts_chunk$set(echo = TRUE, tidy = FALSE)
 
-library(arules)
-library(magrittr)
-#library(XLConnect)
-library(rstan)
-library(nnet)
-library(epitools)
 library(aaltobda)
-library(tinytex)
+library(arules)
+library(brms)
+library(devtools)
+library(dplyr)
+library(easyGgplot2)
+library(epitools)
+library(ggplot2)
+library(KernSmooth)
+library(loo)
+library(magrittr)
 library(MASS)
 library(mvtnorm)
-library(dplyr)
-library(ggplot2)
-library(easyGgplot2)
+library(nnet)
+library(phonTools)
+library(rcompanion)
 library(rstan)
 library(rstanarm)
-library(devtools)
-library(brms)
-library(loo)
-library(KernSmooth)
 library(tableone)
-library(phonTools)
+library(tinytex)
 
 data <- read.csv("./suicide attempt data_2.csv", stringsAsFactors=FALSE)
 
@@ -534,7 +533,7 @@ dat_def <- list(N        = nrow(mydata),
 ```
 We first run the full model. The settings are the same as before except that now we are using the full dataset and default value for thin. 
 ```{r echo=FALSE}
-## SIMPLE LOGISTIC REGRESSION MODEL
+## FULL LOGISTIC REGRESSION MODEL
 
 # Run Stan
 resStanFull <- stan(model_code = stan_code_full,
@@ -604,6 +603,7 @@ As for the Rhat values we can directly observe the effective sample size values 
 
 
 ## Model Comparison
+
 
 
 ## Sensitivity Analysis
