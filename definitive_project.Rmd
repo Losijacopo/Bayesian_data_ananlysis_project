@@ -451,6 +451,16 @@ cat(stan_code_hier)
 ```
 
 ## Convergence Analysis
+In this section we are going to analyse the implemented models, both in terms of convergence (assessed using R-hat and HMC specific convergence diagnostic) and efficiency (by computing the Effective Sample Size). \newline
+
+### R-hat
+R-hat convergence diagnostic compares between- and within-chain estimates for model parameters and other univariate quantities of interest. If chains have not mixed well R-hat is larger than 1. In practical terms, it is good practice to use at least four chians and using the sample if R-hat is less than 1.05. \newline
+
+### HMC
+Here we compute convergence diagnostic specific to Hamiltonian Monte Carlo, and in particular divergences and tree depth. 
+
+### ESS
+Effective sample size (ESS) measures the amount by which autocorrelation within the chains increases uncertainty in estimates. 
 
 
 ## Posterior Predictive Checking 
