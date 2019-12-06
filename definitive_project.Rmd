@@ -241,6 +241,8 @@ Two different models have been implemented which will then be compared in the fo
 
 ## Stan Code
 Here we implement our models using \texttt{Stan}.
+
+### Data loading 
 ```{r}
 
 ## Create Stan data
@@ -286,12 +288,29 @@ stan_code <- readChar(fileName, file.info(fileName)$size)
 cat(stan_code)
 ```
 
-## Data processing
+## Simple model
+Here we implement a simpe logistic regression model. 
+
+```{r}
+## SIMPLE LOGISTIC REGRESSION MODEL
+
+## Load Stan Model
+fileNameOne <- "./logistic_regression_model.stan"
+stan_code_simple <- readChar(fileNameOne, file.info(fileNameOne)$size)
+cat(stan_code_simple)
+
+```
+We notice that the number of factors is really high and it is going to make the models unnecessarily complex, therefore before implementing the hierarchical model we need to evaluate the most influential factors (and check their correlation) and then use these factors to build our models. These models are reported at the end of this selection phase in the section 'Definitive models'. 
+
+### Stan Code Running 
+The Stan models are run by using ...
+
 ```{r echo=FALSE}
+## SIMPLE LOGISTIC REGRESSION MODEL
 
 # Run Stan
-resStan <- stan(model_code = stan_code,
-                data = dat_red,
+resStan <- stan(model_code = stan_code_simple,
+                data = dat,
                 chains = 5, 
                 iter = 2000, 
                 warmup = 800,
@@ -303,6 +322,9 @@ print(resStan, pars = c('beta'))
 
 ```
 
+## Factors selection 
+In this section we will evaluate the most influential factors and their correlation in order to select the most descriptive ones that will be used to contruct our models.\newline
+First of all we process our data:
 ```{r}
 # Transform fitting over beta in a dataframe for the plots
 
@@ -313,7 +335,7 @@ for (i in 1:ncol(data_reduced) - 2)
 
 beta_df <- as.data.frame(beta_matrix)
 ```
-
+Now we show traceplots and generate scatter plots in order to evaluate the correlation between the parameters:
 ```{r}
 # Show traceplot
 traceplot(resStan, pars = c('beta[3]','beta[4]', 'beta[5]', 
@@ -340,12 +362,9 @@ scatter_3 <- ggplot(beta_df, aes(x=V5, y=V6)) +
 
 
 ggplot2.multiplot(scatter_1,scatter_2,scatter_3, cols=1)
-
-
-# overlay histogram, density and show the mean value
-# The plots of the most interesting parameters are presented.
-# Using the mean value it could be interesting to understand 
-# which weaknly informative priors can be designed
+```
+Now we overlay histogram, density and mean value of the parameters. The most interesting plots are presented; using the mean value is interesting since we can understand which weakly informative priors can be designed. 
+```{r}
 
 plot_1 <- qplot(extract(resStan)$beta[,3], geom = 'blank', xlab = 'Values of weigth', ylab = 'Occurences', main='Urbans') +   
   geom_histogram(aes(y = ..density..),col = I('red'), bins = 50) + 
@@ -397,7 +416,6 @@ summary(outcomeModel)
 
 ```
 
-
 ## Comparison
 
 ```{r}
@@ -425,8 +443,10 @@ indexYear2011 <- which(mydata$Year == 2011)
 data_year_2011 <- mydata[indexYear2011,]
 ```
 
+## Definitive models
 
-### Simple model
+## Simple model
+Here we implement a simpe logistic regression model. 
 
 ```{r}
 ## SIMPLE LOGISTIC REGRESSION MODEL
@@ -438,8 +458,7 @@ cat(stan_code_simple)
 
 ```
 
-### Hierarchical model
-
+## Hierarchical model
 ```{r}
 ## HIERARCHICAL LOGISTIC REGRESSION MODEL
 
@@ -450,11 +469,13 @@ cat(stan_code_hier)
 
 ```
 
+
 ## Convergence Analysis
 In this section we are going to analyse the implemented models, both in terms of convergence (assessed using R-hat and HMC specific convergence diagnostic) and efficiency (by computing the Effective Sample Size). \newline
 
+
 ### R-hat
-R-hat convergence diagnostic compares between- and within-chain estimates for model parameters and other univariate quantities of interest. If chains have not mixed well R-hat is larger than 1. In practical terms, it is good practice to use at least four chians and using the sample if R-hat is less than 1.05. \newline
+R-hat convergence diagnostic compares between- and within-chain estimates for model parameters and other univariate quantities of interest. If chains have not mixed well R-hat is larger than 1. In practical terms, it is good practice to use at least four chains and using the sample if R-hat is less than 1.05. \newline
 
 ### HMC
 Here we compute convergence diagnostic specific to Hamiltonian Monte Carlo, and in particular divergences and tree depth. 
