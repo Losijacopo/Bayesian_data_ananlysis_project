@@ -31,6 +31,7 @@ library(dplyr)
 library(ggplot2)
 library(easyGgplot2)
 library(rstan)
+library(rstanarm)
 library(devtools)
 library(brms)
 library(loo)
@@ -282,10 +283,6 @@ dat_red <- list(N    = nrow(data_reduced),
                 job      = as.numeric(data_reduced$Occupation),
                 method   = as.numeric(data_reduced$method))
 
-## Load Stan file
-fileName <- "./logistic_regression_model.stan"
-stan_code <- readChar(fileName, file.info(fileName)$size)
-cat(stan_code)
 ```
 
 ## Simple model
@@ -452,9 +449,9 @@ Here we implement a simpe logistic regression model.
 ## SIMPLE LOGISTIC REGRESSION MODEL
 
 ## Load Stan Model
-fileNameOne <- "./logistic_regression_model.stan"
-stan_code_simple <- readChar(fileNameOne, file.info(fileNameOne)$size)
-cat(stan_code_simple)
+fileNameOneDef <- "./logistic_regression_model_def.stan"
+stan_code_simple_def <- readChar(fileNameOneDef, file.info(fileNameOneDef)$size)
+cat(stan_code_simple_def)
 
 ```
 
@@ -463,12 +460,39 @@ cat(stan_code_simple)
 ## HIERARCHICAL LOGISTIC REGRESSION MODEL
 
 ## Load Stan Model
-fileNameTwo <- "./logistic_regression_model.stan"
-stan_code_hier <- readChar(fileNameTwo, file.info(fileNameTwo)$size)
-cat(stan_code_hier)
+fileNameTwoDef <- "./logistic_regression_model_def.stan"
+stan_code_hier_def <- readChar(fileNameTwoDef, file.info(fileNameTwoDef)$size)
+cat(stan_code_hier_def)
 
 ```
+## Stan Code Running
+```{r}
 
+## Create Stan data
+dat_def <- list(N        = nrow(mydata),
+                p        = 4,
+                died     = as.numeric(mydata$Died),
+                sex      = as.numeric(mydata$Sex),
+                age      = as.numeric(mydata$Age),
+                edu      = as.numeric(mydata$Education))
+
+```
+```{r echo=FALSE}
+## SIMPLE LOGISTIC REGRESSION MODEL
+
+# Run Stan
+resStan <- stan(model_code = stan_code_simple_def,
+                data = dat_def,
+                chains = 5, 
+                iter = 2000, 
+                warmup = 800,
+                thin = 10,
+                refresh = 0,
+                seed = 12345,
+                control = list(adapt_delta = 0.95))
+print(resStan, pars = c('beta'))
+
+```
 
 ## Convergence Analysis
 In this section we are going to analyse the implemented models, both in terms of convergence (assessed using R-hat and HMC specific convergence diagnostic) and efficiency (by computing the Effective Sample Size). \newline
@@ -476,6 +500,10 @@ In this section we are going to analyse the implemented models, both in terms of
 
 ### R-hat
 R-hat convergence diagnostic compares between- and within-chain estimates for model parameters and other univariate quantities of interest. If chains have not mixed well R-hat is larger than 1. In practical terms, it is good practice to use at least four chains and using the sample if R-hat is less than 1.05. \newline
+
+```{r}
+max(rhat(resStan))
+```
 
 ### HMC
 Here we compute convergence diagnostic specific to Hamiltonian Monte Carlo, and in particular divergences and tree depth. 
