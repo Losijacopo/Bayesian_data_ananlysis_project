@@ -183,8 +183,9 @@ mydata <- mydata[-indexUnkn,]
 # Introduction
 This project is based on a study carried out in 2015 by a group of researchers to estimate the incidence of serious suicide attempts in Shandong, China, and to examine the factors associated with fatality among the attempters. \newline
 We have chosen to examine a dataset on suicides because it is a really important but often underconsidered problem in today's society. Not only this problem reflects a larger problem in a country societal system but it can also be a burden for hospital resources. We think that by being able to talk about it more openly and by truly trying to estimate its size and impact we can start to understand where the causes are rooted and what can be done to fight it. \newline
-We invite the reader to check the source section to further read about the setting and results of the named paper. 
-
+We invite the reader to check the source section to further read about the setting and results of the named paper. \newline
+In this report we will carry out our analysis following the bayesian approach. Since also the frequentist approach was covered during lecture, we though that it was meaningful to compare the two at the begininning of the analysis.\newline
+Adopting then the bayesian approach we will first develop a multiple logistic regression model using all the variables, after that we will do variable selection to determine which are the most influential factors and develop a second multiple logistic regression model using the selected variables. After that, we will assess the convergence and efficiency of the models, do posterior predictive checking and compare the models. To conclude we carry out sensitivity analysis with respect to prior choices and eventually answer our analysis problem. 
 
 
 ## Analysis Problem
@@ -209,7 +210,7 @@ The data set is constituted by 2571 observations of 11 variables:
   \item \texttt{Occupation}: one of ten categories
   \item \texttt{method}: one of nine methods
 \end{itemize}
-It is important to notice that the population in the study is predominantly rura and that the limitation of the study is that the incidence estimates are likely to be underestimated due to underreporting in both surveillance systems. 
+It is important to notice that the population in the study is predominantly rural and that the limitation of the study is that the incidence estimates are likely to be underestimated due to underreporting in both surveillance systems. 
 
 
 
@@ -229,7 +230,7 @@ Data downloaded via Dryad Digital Repository. https://doi.org/10.5061/dryad.r0v3
 
 
 # Analysis
-In this section we will carry out our analysis following the bayesian approach. First we will develop a multiple logistic regression model using all the variables, after that we will do variable selection to determine which are the most influential factors and develop a second multiple logistic regression model using the selected variables. After that, we will assess the convergence and efficiency of the models, do posterior predictive checking and compare the models. To conclude we carry out sensitivity analysis with respect to prior choices and eventually andwer our analysis problem. 
+In this section we will carry out our analysis.
 
 
 
@@ -803,7 +804,8 @@ elpd_loo_mod_comp
 ```
 
 
-## Sensitivity Analysis
+
+## Age prediction
 
 
 
