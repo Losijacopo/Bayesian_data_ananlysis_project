@@ -604,11 +604,14 @@ As for the Rhat values we can directly observe the effective sample size values 
 
 ## Model Comparison
 
-```{r, include=FALSE}
+```{r}
 
 datFile <- "suicide attempt data_2.csv"
 datCsv <- read.csv(datFile, stringsAsFactors=FALSE)
 datSet <- as.data.frame(datCsv)
+
+datSet$Season <- datSet$Month
+datSet$Month = NULL
 
 ## Remove unknown labels
 
@@ -666,12 +669,14 @@ datSet$Education[indexEduThree]  <- 3   # 3 --> Tertiary
 
 
 # Occupation
+indexUnEmpl <- which(datSet$Occupation == 'unemployed')
 indexFarm   <- which(datSet$Occupation == 'farming')
-indexNoFarm <- which(datSet$Occupation != 'farming')
+indexProf   <- which(datSet$Occupation == 'business/service' | datSet$Occupation == 'professional')
 
-datSet$Occupation[indexFarm]   <- 1    # 1 --> farming
-datSet$Occupation[indexNoFarm] <- 0    # 0 --> non farming
-
+datSet$Occupation[indexUnEmpl]   <- 0    # 1 --> farming
+datSet$Occupation[indexFarm]     <- 1    # 0 --> non farming
+datSet$Occupation[indexProf]     <- 2
+datSet$Occupation[-c(indexUnEmpl, indexFarm, indexProf)]    <- 3
 
 # Method 
 indexPesticide <- which(datSet$method == 'Pesticide')
@@ -686,11 +691,22 @@ datSet$method[indexPoison]    <- 2 # 2 --> Other poison
 datSet$method[indexHanging]   <- 3 # 3 --> hanging
 datSet$method[indexOthers]    <- 4 # 4 --> All others
 
+# Season
+indexSpring <- which(datSet$Season >= 3 & datSet$Season <= 5)
+indexSummer <- which(datSet$Season >= 6 & datSet$Season <= 8)
+indexAutumn <- which(datSet$Season >= 9 & datSet$Season <= 11)
+indexWinter <- which(datSet$Season == 12 | datSet$Season <= 2)
 
-qplot(datSet$Age, geom = 'blank', xlab = 'Values of weigth', ylab = 'Occurences', main='Urbans') +   
-  geom_histogram(aes(y = ..density..),col = I('red'), bins = 50) + 
-  geom_line(aes(y = ..density..), size = 1, col = I('blue'), stat = 'density', ) +
-  geom_vline(aes(xintercept=mean(datSet$Age)), col=I('yellow'), linetype="dashed", size=1) 
+datSet$Season[indexSpring] <- 1  # 1 --> Spring
+datSet$Season[indexSummer] <- 2  # 2 --> Summer
+datSet$Season[indexAutumn] <- 3  # 3 --> Autumn
+datSet$Season[indexWinter] <- 4  # 4 --> Winter
+
+
+# qplot(datSet$Age, geom = 'blank', xlab = 'Values of weigth', ylab = 'Occurences', main='Urbans') +   
+#   geom_histogram(aes(y = ..density..),col = I('red'), bins = 50) + 
+#   geom_line(aes(y = ..density..), size = 1, col = I('blue'), stat = 'density', ) +
+#   geom_vline(aes(xintercept=mean(datSet$Age)), col=I('yellow'), linetype="dashed", size=1) 
 ```
 
 
@@ -736,6 +752,56 @@ elpd_loo_mod <- loo_mod$estimates[1]
 elpd_loo_mod
 
 ```
+
+
+```{r}
+
+data_4_fit_complete <- list(N = nrow(datSet),
+                   p = 10,
+                   age = as.numeric(datSet$Age),
+                   died = as.numeric(datSet$Died),
+                   hosp = as.numeric(datSet$Hospitalised),
+                   year = as.numeric(datSet$Year),
+                   sex = as.numeric(datSet$Sex),
+                   job = as.numeric(datSet$Occupation),
+                   urban = as.numeric(datSet$Urban),
+                   edu = as.numeric(datSet$Education),
+                   method = as.numeric(datSet$method),
+                   season = as.numeric(datSet$Season))
+
+
+fileName <- "./stan_model_prior_all_params.stan"
+stan_code_complete <- readChar(fileName, file.info(fileName)$size)
+cat(stan_code_complete)
+
+# Run Stan
+fitStan_complete <- stan(model_code = stan_code_complete,
+                data = data_4_fit_complete,
+                chains = 5, 
+                iter = 2000, 
+                warmup = 800,
+                thin = 10,
+                refresh = 0,
+                seed = 12345,
+                control = list(adapt_delta = 0.95))
+print(fitStan_complete, pars = c('beta', 'sigma'))
+
+
+```
+
+
+```{r}
+
+log_like_model_compl <- extract_log_lik(fitStan_complete, merge_chains = FALSE)
+r_eff <- relative_eff(exp(log_like_model_compl))
+loo_mod_comp <- loo(log_like_model_compl, r_eff = r_eff)
+print(loo_mod_comp)
+plot(loo_mod_comp)
+elpd_loo_mod_comp <- loo_mod_comp$estimates[1]
+elpd_loo_mod_comp
+
+```
+
 
 ## Sensitivity Analysis
 
