@@ -779,6 +779,15 @@ trace.cauchy + scale_color_brewer(type = 'div') + ggtitle('Plots for cauchy prio
 
 ```
 
+Observing the distribution above, it is clear that, even if the prior changes, the posterior distribution will remain almost the same. As a matter of fact, there are only small differences among the analysed parameters for all the models. 
+This can be seen looking at both the plots of the distributions and to the trace plots of the chains. 
+Moreover, all the models perform in a good way, giving convergence for all the cases.
+
+Bolow, the plots for Rhat and ESS will be proposed. 
+As said above, the convergence is achieved, in fact the Rhat values are all below 1.05, that is the limit for the convergence.
+The ratio for the ESS is close to 1 too.
+
+
 ```{r}
 
 # Rhat histogram plots
@@ -835,6 +844,20 @@ ggplot(distrLength, aes(ratio_ess, fill = distr)) + geom_histogram(alpha = 0.5, 
 
 
 ```
+
+```{r}
+# Leave-one-out cross-validation over the models with different priors
+
+loo.uniform    <- loo(model.full.uniform, cores = 2)
+loo.normal    <- loo(model.full.normal, cores = 2)
+loo.student <- loo(model.full.student, cores = 2)
+loo.cauchy   <- loo(model.full.cauchy, cores = 2)
+compar_models_prior <- loo_compare(loo.uniform, loo.normal, loo.student, loo.cauchy)
+compar_models_prior
+
+```
+
+Observing the values of the relative elpd among the model tested in this section, the one that performs better is the one with a cauchy distribution as prior. 
 
 
 ## Age prediction
