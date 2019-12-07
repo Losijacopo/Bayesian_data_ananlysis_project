@@ -280,12 +280,12 @@ This project is based on a study carried out in 2015 by a group of researchers t
 We have chosen to examine a dataset on suicides because it is a really important but often underconsidered problem in today's society. Not only this problem reflects a larger problem in a country societal system but it can also be a burden for hospital resources. We think that by being able to talk about it more openly and by truly trying to estimate its size and impact we can start to understand where the causes are rooted and what can be done to fight it. \newline
 We invite the reader to check the source section to further read about the setting and results of the named paper. \newline
 In this report we will carry out our analysis following the bayesian approach. Since also the frequentist approach was covered during lecture, we though that it was meaningful to compare the two at the begininning of the analysis.\newline
-Adopting then the bayesian approach we will first develop a multiple logistic regression model using all the variables, after that we will do variable selection to determine which are the most influential factors and develop a second multiple logistic regression model using the selected variables. After that, we will assess the convergence and efficiency of the models, do posterior predictive checking and compare the models. To conclude we carry out sensitivity analysis with respect to prior choices and eventually answer our analysis problem. 
+Adopting then the bayesian approach we will first develop a multiple logistic regression model using all the variables, after that we will do variable selection to determine which are the most influential factors and develop a second multiple logistic regression model using the selected variables. After that, we will assess the convergence and efficiency of the models, do posterior predictive checking and compare the models. To conclude we carry out a prediction on the age of the attempters and eventually answer our analysis problem. 
 
 
 ## Analysis Problem
 
-The objective of the project is to use the bayesian approach to develop models to evaluate the most influential factors related to serious suicide attempts (SSAs, defined as suicide attempts resulting in either death or hospitalisation) and being able to make predictions for the years following the period where the study was set. 
+The objective of the project is to use the bayesian approach to develop models to evaluate the most influential factors related to serious suicide attempts (SSAs, defined as suicide attempts resulting in either death or hospitalisation) and being able to make predictions on the age of the attempters. 
 
 
 
@@ -325,35 +325,19 @@ Data downloaded via Dryad Digital Repository. https://doi.org/10.5061/dryad.r0v3
 
 
 # Analysis
-In this section we will carry out our analysis.
-
-
 
 
 ## Model description 
 In order to evaluate the factors which influence the probability of SSA the most it is an obvious chioice to develop a multiple logistic regression model.
-Two different models have been implemented which will then be compared in the following analysis:
+First we developed two models to evaluate the incidence of the factors on fatality of attempts:
 \begin{itemize}
   \item \textbf{Full logistic regression model} where all the parameters are included
   \item \textbf{Reduced logistic regression model} that only includes the parameters selected in the variable selection phase. 
 \end{itemize}
-
-
-
-
-### Full Logistic Regression Model
-
-
-
-
-
-### Reduced Logistic Regression Model
-
-
-
+At the end of the analysis we have devoloped two other models to predict the age of the attempters. These two models correspond to a full model with all the parameters and a reduced one with only the most relevant parameters once again. \newline
 
 ## Prior choices
-
+For the fist models (where we evaluated the incidence of the parameters on the fatality of attempts) we have assumed flat priors while in the last two models we have decided to assign a weakly informative prior to the standard deviation $\sigma \sim N(0,10)$ since the mean $\mu$ was too sensible to prior choices. 
 
 
 ## Code 
@@ -699,6 +683,7 @@ As for the Rhat values we can directly observe the effective sample size values 
 
 
 ## Model Comparison
+In this section the implemented models are compared using leave-one-out cross-validation. 
 
 
 
