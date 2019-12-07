@@ -137,143 +137,23 @@ datSet$Season[indexSummer] <- 2  # 2 --> Summer
 datSet$Season[indexAutumn] <- 3  # 3 --> Autumn
 datSet$Season[indexWinter] <- 4  # 4 --> Winter
 
-```
-
-
-```{r echo=FALSE}
-## DATA => MYDATA
-# In this chunk we convert the data entries to make it 
-# treatable in the following analysis
-
-mydata <- data
-mydata$Season <- data$Month
-mydata$Month = NULL
-
-
-# Hospitalised
-
-indexHosp   <- which(data$Hospitalised == 'yes')
-indexNoHosp <- which(data$Hospitalised == 'no')
-
-mydata$Hospitalised[indexHosp]   <- 1    # 1 --> yes
-mydata$Hospitalised[indexNoHosp] <- 0    # 0 --> no
-
-
-# Died
-
-indexDied   <- which(data$Died == 'yes')
-indexNoDied <- which(data$Died == 'no')
-
-mydata$Died[indexDied]   <- 1    # 1 --> yes
-mydata$Died[indexNoDied] <- 0    # 0 --> no
-
-
-# Urban
-
-indexUrban   <- which(data$Urban == 'yes')
-indexNoUrban <- which(data$Urban == 'no')
-
-mydata$Urban[indexUrban]   <- 1    # 1 --> yes
-mydata$Urban[indexNoUrban] <- 0    # 0 --> no
-
-#Year
-indexYear2009 <- which(mydata$Year == 2009)
-indexYear2010 <- which(mydata$Year == 2010)
-indexYear2011 <- which(mydata$Year == 2011)
-
-mydata$Year[indexYear2009] <- 1    # 1 --> 2009
-mydata$Year[indexYear2010] <- 2    # 2 --> 2010
-mydata$Year[indexYear2011] <- 3    # 3 --> 2011
-
-
-# Season
-
-indexSpring <- which(data$Month >= 3 & data$Month <= 5)
-indexSummer <- which(data$Month >= 6 & data$Month <= 8)
-indexAutumn <- which(data$Month >= 9 & data$Month <= 11)
-indexWinter <- which(data$Month == 12 | data$Month <= 2)
-
-mydata$Season[indexSpring] <- 1  # 1 --> Spring
-mydata$Season[indexSummer] <- 2  # 2 --> Summer
-mydata$Season[indexAutumn] <- 3  # 3 --> Autumn
-mydata$Season[indexWinter] <- 4  # 4 --> Winter
-
-
-# Sex
-
-indexMale   <- which(data$Sex == 'male')
-indexFemale <- which(data$Sex == 'female')
-
-mydata$Sex[indexMale]   <- 1    # 1 --> male
-mydata$Sex[indexFemale] <- 0    # 0 --> female
-
+datSetCluster <- datSet
 
 # Age
+indexAgeOne   <- which(datSet$Age <= 34) 
+indexAgeTwo   <- which(datSet$Age >= 35 & datSet$Age <= 49)
+indexAgeThree <- which(datSet$Age >= 50 & datSet$Age <= 64)
+indexAgeFour  <- which(datSet$Age >= 65)
 
-indexAgeOne   <- which(data$Age <= 34) 
-indexAgeTwo   <- which(data$Age >= 35 & data$Age <= 49)
-indexAgeThree <- which(data$Age >= 50 & data$Age <= 64)
-indexAgeFour  <- which(data$Age >= 65)
-
-mydata$Age[indexAgeOne]   <- 1   # 1 --> <34
-mydata$Age[indexAgeTwo]   <- 2   # 2 --> 35-49
-mydata$Age[indexAgeThree] <- 3   # 3 --> 50-64
-mydata$Age[indexAgeFour]  <- 4   # 4 --> >65
-
-
-# Education
-
-indexEduZero  <- which(data$Education == 'iliterate') 
-indexEduOne   <- which(data$Education == 'primary') 
-indexEduTwo   <- which(data$Education == 'Secondary')
-indexEduThree <- which(data$Education == 'Tertiary')
-
-mydata$Education[indexEduZero]   <- 0   # 0 --> iliterate
-mydata$Education[indexEduOne]    <- 1   # 1 --> primary
-mydata$Education[indexEduTwo]    <- 2   # 2 --> Secondary
-mydata$Education[indexEduThree]  <- 3   # 3 --> Tertiary
-
-
-# Occupation
-
-indexFarm   <- which(data$Occupation == 'farming')
-indexNoFarm <- which(data$Occupation != 'farming')
-
-mydata$Occupation[indexFarm]   <- 1    # 1 --> farming
-mydata$Occupation[indexNoFarm] <- 0    # 0 --> non farming
-
-
-# Method 
-
-indexPesticide <- which(data$method == 'Pesticide')
-indexPoison    <- which(data$method == 'Other poison')
-indexHanging    <- which(data$method == 'hanging')
-indexOthers    <- which(data$method != 'Pesticide' &
-                        data$method != 'Other poison' &
-                        data$method != 'hanging')
-
-mydata$method[indexPesticide] <- 1 # 1 --> Pesticide
-mydata$method[indexPoison]    <- 2 # 2 --> Other poison  
-mydata$method[indexHanging]   <- 3 # 3 --> hanging
-mydata$method[indexOthers]    <- 4 # 4 --> All others
-
-
-## Remove unknown labels
-
-indexUnknw1 <- which(mydata$Education == 'unknown')
-mydata <- mydata[-indexUnknw1,]
-indexUnkn <- which(mydata$Urban == 'unknown')
-mydata <- mydata[-indexUnkn,]
+datSetCluster$Age[indexAgeOne]   <- 1   # 1 --> <34
+datSetCluster$Age[indexAgeTwo]   <- 2   # 2 --> 35-49
+datSetCluster$Age[indexAgeThree] <- 3   # 3 --> 50-64
+datSetCluster$Age[indexAgeFour]  <- 4   # 4 --> >65
 
 ```
-
-
 
 
 \clearpage
-
-
-
 
 # Introduction
 This project is based on a study carried out in 2015 by a group of researchers to estimate the incidence of serious suicide attempts in Shandong, China, and to examine the factors associated with fatality among the attempters. \newline
@@ -317,11 +197,7 @@ Sun J, Guo X, Zhang J, Wang M, Jia C, Xu A (2015) "Incidence and fatality of ser
 Data downloaded via Dryad Digital Repository. https://doi.org/10.5061/dryad.r0v35
 
 
-
-
 \clearpage
-
-
 
 
 # Analysis
@@ -329,11 +205,100 @@ Data downloaded via Dryad Digital Repository. https://doi.org/10.5061/dryad.r0v3
 
 ## Model description 
 In order to evaluate the factors which influence the probability of SSA the most it is an obvious chioice to develop a multiple logistic regression model.
-First we developed two models to evaluate the incidence of the factors on fatality of attempts:
+
+
+As already said, at first we evaluated a comparison between the frequentist and the bayesian approach, in order to provide an analysis of the dataset with both models, being the two approaches discussed during the lectures.
+
+Thus, the two model follow below.
+
+### Frequentist approach
+
+```{r}
+
+freqModel <- glm(as.numeric(Died) ~ as.numeric(Urban) + 
+                                    as.numeric(Year) + 
+                                    as.numeric(Season) + 
+                                    as.numeric(Sex) + 
+                                    as.numeric(Age) + 
+                                    as.numeric(Education) + 
+                                    as.numeric(Occupation) + 
+                                    as.numeric(method), 
+                data = datSetCluster,
+                family = binomial(link = "logit"))
+summary(freqModel)
+
+```
+
+### Bayesian approach using Stan
+
+```{r}
+
+## Create Stan data
+datFullBayes <- list(N      = nrow(datSetCluster),
+                     p      = ncol(datSetCluster) - 2,
+                     died   = as.numeric(datSetCluster$Died),
+                     urban  = as.numeric(datSetCluster$Urban),
+                     year   = as.numeric(datSetCluster$Year),
+                     season = as.numeric(datSetCluster$Season),
+                     sex    = as.numeric(datSetCluster$Sex),
+                     age    = as.numeric(datSetCluster$Age),
+                     edu    = as.numeric(datSetCluster$Education),
+                     job    = as.numeric(datSetCluster$Occupation),
+                     method = as.numeric(datSetCluster$method))
+
+## Load Stan file
+
+fileName <- "./logistic_regression_model.stan"
+stanCodeFull <- readChar(fileName, file.info(fileName)$size)
+cat(stanCodeFull)
+
+```
+
+```{r echo=FALSE}
+## SIMPLE LOGISTIC REGRESSION MODEL
+
+# Run Stan
+resStanFull <- stan(model_code = stanCodeFull,
+                    data = datFullBayes,
+                    chains = 5, 
+                    iter = 2000, 
+                    warmup = 800,
+                    thin = 10,
+                    refresh = 0,
+                    seed = 12345,
+                    control = list(adapt_delta = 0.95))
+
+```
+
+```{r}
+
+traceplot(resStanFull, pars = c('beta[3]','beta[4]', 'beta[5]', 
+                                'beta[6]', 'beta[7]', 'beta[8]',
+                                'beta[9]'), inc_warmup = TRUE)
+```
+
+
+### Comparison between frequentist and bayesian approach
+
+```{r}
+## Bayesian
+print(resStanFull, pars = c('beta'))
+
+## Frequentist
+tableone::ShowRegTable(freqModel, exp = FALSE)
+
+```
+
+After this first analysis, as aforementioned, we decided to use the Bayesian approach.
+
+
+Therefore, regarding the analysis that will follow, we first developed two models to evaluate the incidence of the factors on fatality of attempts:
+
 \begin{itemize}
-  \item \textbf{Full logistic regression model} where all the parameters are included
+  \item \textbf{Full logistic regression model} where all the parameters are included, as the one shown before;
   \item \textbf{Reduced logistic regression model} that only includes the parameters selected in the variable selection phase. 
 \end{itemize}
+
 At the end of the analysis we have devoloped two other models to predict the age of the attempters. These two models correspond to a full model with all the parameters and a reduced one with only the most relevant parameters once again. \newline
 
 ## Prior choices
@@ -348,17 +313,17 @@ First of all we load the data. Notice that some processing was done on the origi
 ```{r}
 
 ## Create Stan data
-dat <- list(N        = nrow(mydata),
-            p        = ncol(mydata) - 2,
-            died     = as.numeric(mydata$Died),
-            urban    = as.numeric(mydata$Urban),
-            year     = as.numeric(mydata$Year),
-            season   = as.numeric(mydata$Season),
-            sex      = as.numeric(mydata$Sex),
-            age      = as.numeric(mydata$Age),
-            edu      = as.numeric(mydata$Education),
-            job      = as.numeric(mydata$Occupation),
-            method   = as.numeric(mydata$method))
+datFull <- list(N      = nrow(datSetCluster),
+                p      = ncol(datSetCluster) - 2,
+                died   = as.numeric(datSetCluster$Died),
+                urban  = as.numeric(datSetCluster$Urban),
+                year   = as.numeric(datSetCluster$Year),
+                season = as.numeric(datSetCluster$Season),
+                sex    = as.numeric(datSetCluster$Sex),
+                age    = as.numeric(datSetCluster$Age),
+                edu    = as.numeric(datSetCluster$Education),
+                job    = as.numeric(datSetCluster$Occupation),
+                method = as.numeric(datSetCluster$method))
 
 ```
 
@@ -371,9 +336,9 @@ Therefore, we will proceed as follows:
 
 ```{r}
 
-random_index <- sample(mydata$Person_ID, size = 50, replace = TRUE)
+random_index <- sample(datSetCluster$Person_ID, size = 50, replace = TRUE)
 
-data_reduced <- mydata[random_index, ]
+data_reduced <- datSetCluster[random_index, ]
 data_reduced <- na.omit(data_reduced)
 ```
 
@@ -409,7 +374,8 @@ cat(stan_code_full)
 ```
 
 ### Stan Code Running 
-The Stan models are run by using five chains constituted by 2000 iterations, a warmup length of 800 iterations and a thin equal to 10. Thin is a positive integer that specifies the period for saving samples; it is set by default = 1, and it is normally left to defaults. In our case though our posterior distribution takes up a lot of memory even when using a reduced dataset and we require a large numer of iteration to achieve effective sample size and therefore we decide to set it to 10 in this phase. 
+The Stan models are run by using five chains constituted by 2000 iterations, a warmup length of 800 iterations and a thin equal to 10. 
+Thin is a positive integer that specifies the period for saving samples; it is set by default = 1, and it is normally left to defaults. In our case though our posterior distribution takes up a lot of memory even when using a reduced dataset and we require a large numer of iteration to achieve effective sample size and therefore we decide to set it to 10 in this phase. 
 
 ```{r echo=FALSE}
 ## SIMPLE LOGISTIC REGRESSION MODEL
@@ -431,6 +397,7 @@ print(resStanFull, pars = c('beta'))
 
 ### Variable selection 
 In this section we will evaluate the most influential factors and their correlation in order to select the most descriptive ones that will be used to contruct our second model (the reduced logistic regression model).\newline
+
 First of all we process our data:
 ```{r}
 # Transform fitting over beta in a dataframe for the plots
@@ -446,10 +413,6 @@ beta_df <- as.data.frame(beta_matrix)
 Now we show traceplots and generate scatter plots in order to evaluate the correlation between the parameters:
 
 ```{r}
-# Show traceplot
-traceplot(resStanFull, pars = c('beta[3]','beta[4]', 'beta[5]', 
-                                'beta[6]', 'beta[7]', 'beta[8]',
-                                'beta[9]'), inc_warmup = TRUE)
 # Generate some scatter plots in order to see the correlations between parameters
 scatter_1 <- ggplot(beta_df, aes(x=V3, y=V7)) +
                     ggtitle("Correlation between location and education") +
@@ -472,7 +435,10 @@ scatter_3 <- ggplot(beta_df, aes(x=V5, y=V6)) +
 
 ggplot2.multiplot(scatter_1,scatter_2,scatter_3, cols=1)
 ```
-Now we overlay histogram, density and mean value of the parameters. The most interesting plots are presented; using the mean value is interesting since we can understand which weakly informative priors can be designed. 
+
+Now we overlay histogram, density and mean value of the parameters. The most interesting plots are presented; using the mean value is interesting since we can understand which are the parameters that influence more the posterior. 
+Thus, looking at the weight of the parameters in the histograms, it is possible to suppose with enough precision which are the most informative parameters. 
+
 ```{r}
 
 plot_1 <- qplot(extract(resStanFull)$beta[,3], geom = 'blank',
@@ -514,60 +480,6 @@ From the analysis done above, and especially looking at the histogram, it is cle
 Therefore, for further analysis, it will be good to develop specific analysis using only these parameters, in order to have a more precise evalution considering only the most relevant parameters. 
 
 
-
-
-### Frequentist approach 
-
-```{r}
-
-outcomeModel <- glm(as.numeric(Died) ~ as.numeric(Urban) + 
-                                       as.numeric(Year) + 
-                                       as.numeric(Season) + 
-                                       as.numeric(Sex) + 
-                                       as.numeric(Age) + 
-                                       as.numeric(Education) + 
-                                       as.numeric(Occupation) + 
-                                       as.numeric(method), data = mydata,
-                    family = binomial(link = "logit"))
-summary(outcomeModel)
-
-```
-
-
-
-
-### Comparison
-
-```{r}
-## Bayesian
-print(resStanFull, pars = c("beta"))
-
-## Frequentist
-tableone::ShowRegTable(outcomeModel, exp = FALSE)
-
-```
-
-
-
-### Some clustering on the data
-
-Let us try to cluster the data using the specific year in order to do a prediction on the following year
-
-```{r}
-
-indexYear2009 <- which(mydata$Year == 2009)
-data_year_2009 <- mydata[indexYear2009,]
-
-indexYear2010 <- which(mydata$Year == 2010)
-data_year_2010 <- mydata[indexYear2010,]
-
-indexYear2011 <- which(mydata$Year == 2011)
-data_year_2011 <- mydata[indexYear2011,]
-```
-
-
-
-
 ## Full logistic regression model 
 For completeness we report here the full model once again. 
 ```{r}
@@ -595,20 +507,18 @@ cat(stan_code_simple_def)
 ```
 
 
-
-
 ## Stan Code Running
 Now we are going to run the model on the full dataset. \newline
 First we define the Stan data to run the second (reduced) model. 
 ```{r}
 
 ## Create Stan data
-dat_def <- list(N        = nrow(mydata),
+dat_def <- list(N        = nrow(datSetCluster),
                 p        = 4,
-                died     = as.numeric(mydata$Died),
-                sex      = as.numeric(mydata$Sex),
-                age      = as.numeric(mydata$Age),
-                edu      = as.numeric(mydata$Education))
+                died     = as.numeric(datSetCluster$Died),
+                sex      = as.numeric(datSetCluster$Sex),
+                age      = as.numeric(datSetCluster$Age),
+                edu      = as.numeric(datSetCluster$Education))
 
 ```
 We first run the full model. The settings are the same as before except that now we are using the full dataset and default value for thin. 
@@ -617,7 +527,7 @@ We first run the full model. The settings are the same as before except that now
 
 # Run Stan
 resStanFull <- stan(model_code = stan_code_full,
-                data = dat,
+                data = datFull,
                 chains = 5, 
                 iter = 2000, 
                 warmup = 800,
@@ -681,20 +591,110 @@ As for the Rhat values we can directly observe the effective sample size values 
 
 ## Posterior Predictive Checking 
 
+In order to develop a precise posterior predictive checking and a model comparison, it was decided to use the built-in Stan function \texttt{stan\_glm}.
+This was mainly done for treatability reason. As a matter of fact, with the defined function it is easier to create different Stan models, add priors and genearate new sample from the posterior. 
 
-## Model Comparison
-In this section the implemented models are compared using leave-one-out cross-validation. 
+```{r echo=FALSE}
+## Different Stan models, testing different distribution families and piors
 
+datSetCluster <- na.omit(datSetCluster)
 
+# Define null and full model
 
+model.null <- stan_glm(as.numeric(Died) ~ 1,
+                       data = datSetCluster,
+                       family = binomial(link = 'logit'))
 
-# qplot(datSet$Age, geom = 'blank', xlab = 'Values of weigth', ylab = 'Occurences', main='Urbans') +   
-#   geom_histogram(aes(y = ..density..),col = I('red'), bins = 50) + 
-#   geom_line(aes(y = ..density..), size = 1, col = I('blue'), stat = 'density', ) +
-#   geom_vline(aes(xintercept=mean(datSet$Age)), col=I('yellow'), linetype="dashed", size=1) 
+model.full <- stan_glm(
+  as.numeric(Died) ~ as.numeric(Urban) + as.numeric(Year) + as.numeric(Sex) + as.numeric(Age) + as.numeric(Education) + as.numeric(Occupation) + as.numeric(method) + as.numeric(Season),
+  data = datSetCluster,
+  family = binomial(link = "logit"),
+  prior = normal(0,10),
+  prior_intercept = NULL,
+  QR = TRUE,
+  chains = 5,
+  iter = 2000,
+  warmup = 1000
+)
+
+model.reduced = stan_glm(
+  as.numeric(Died) ~ as.numeric(Urban) + as.numeric(Sex) + as.numeric(Age) + as.numeric(Education) + as.numeric(Occupation) + as.numeric(method),
+  data = datSetCluster,
+  family = binomial(link = 'logit'),
+  prior = normal(0,10),
+  prior_intercept = NULL,
+  chains = 5,
+  iter = 2000,
+  warmup = 1000,
+  QR = TRUE,
+  adapt_delta = 0.99)
+                       
+model.normal = stan_glm(
+  as.numeric(Died) ~ as.numeric(Urban) + as.numeric(Year) + as.numeric(Sex) + as.numeric(Age) + as.numeric(Education) + as.numeric(Occupation) + as.numeric(method) + as.numeric(Season),
+  data = datSetCluster,
+  family = gaussian,
+  prior = normal(0.10),
+  QR = TRUE,
+  chains = 5,
+  iter = 2000,
+  warmup = 1000,
+  adapt_delta = 0.99
+)
+
+model.poisson = stan_glm(
+  as.numeric(Died) ~ as.numeric(Urban) + as.numeric(Year) + as.numeric(Sex) + as.numeric(Age) + as.numeric(Education) + as.numeric(Occupation) + as.numeric(method) + as.numeric(Season),
+  data = datSetCluster,
+  family = poisson(link = "log"),
+  prior = normal(0,5),
+  prior_intercept = NULL,
+  QR = TRUE,
+  chains = 5,
+  iter = 2000,
+  warmup = 1000,
+  adapt_delta = 0.99
+)
 ```
 
+```{r}
+cat('\n Summary of null model \n')
+summary(model.null)
+cat('\n Summary of full model \n')
+summary(model.full)
+cat('\n Summary of reduced model \n')
+summary(model.reduced)
+cat('\n Summary of normal model \n')
+summary(model.normal)
+cat('\n Summary of Possion model \n')
+summary(model.poisson)
 
+```
+
+## Model Comparison
+
+In this section the implemented models are compared using leave-one-out cross-validation. 
+
+```{r}
+
+loo.null    <- loo(model.null, cores = 2)
+loo.full    <- loo(model.full, cores = 2)
+loo.reduced <- loo(model.reduced, cores = 2)
+loo.normal   <- loo(model.normal, cores = 2)
+loo.possion <- loo(model.poisson, cores = 2)
+
+compar_models <- loo_compare(loo.null, loo.full, loo.reduced, loo.normal, loo.possion)
+compar_models
+```
+
+As it is possible to see from the analysis done above, the model that performs better is the one with all the parameters and in which the family distribution is the binomial one.
+Regarding the result, at the beginning we though that the model could suffer for overfitting using all the parameters. 
+However, the analysis performed, showed us that using all the parameters it is possible to obtain the best fitting.
+
+## Prior sensitivity analysis
+
+At this point, it becomes useful to develop a sensitivity analysis over the prior using the full model, i.e. the one that performed better, in order to understand what are the prior that allow to improve the posterior distribution without shifting it from the mean value.  
+
+
+## Age prediction
 ```{r}
 
 data_4_fit <- list(N = nrow(datSet),
@@ -786,10 +786,6 @@ elpd_loo_mod_comp <- loo_mod_comp$estimates[1]
 elpd_loo_mod_comp
 
 ```
-
-
-
-## Age prediction
 
 
 

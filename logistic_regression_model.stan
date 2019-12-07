@@ -28,9 +28,9 @@ transformed parameters  {
   real<lower=0> odds[N];
   real<lower=0, upper=1> prob[N];
   for (i in 1:N) {
-    odds[i] = exp(beta[1] + beta[2]*year[i]  + beta[3]*urban[i] + 
-                            beta[4]*season[i] + beta[5]*sex[i]  + 
-                            beta[6]*age[i]    + beta[7]*edu[i]  +
+    odds[i] = exp(beta[1] + beta[2]*year[i]   + beta[3]*urban[i] + 
+                            beta[4]*season[i] + beta[5]*sex[i]   + 
+                            beta[6]*age[i]    + beta[7]*edu[i]   +
                             beta[8]*job[i]    + beta[9]*method[i] );
     prob[i] = odds[i] / (odds[i] + 1);
   }
