@@ -594,7 +594,7 @@ As for the Rhat values we can directly observe the effective sample size values 
 In order to develop a precise posterior predictive checking and a model comparison, it was decided to use the built-in Stan function \texttt{stan\_glm}.
 This was mainly done for treatability reason. As a matter of fact, with the defined function it is easier to create different Stan models, add priors and genearate new sample from the posterior. 
 
-```{r echo=FALSE}
+```{r echo=FALSE, results = 'hide'}
 ## Different Stan models, testing different distribution families and piors
 
 datSetCluster <- na.omit(datSetCluster)
@@ -675,11 +675,11 @@ In this section the implemented models are compared using leave-one-out cross-va
 
 ```{r}
 
-loo.null    <- loo(model.null, cores = 2)
-loo.full    <- loo(model.full, cores = 2)
-loo.reduced <- loo(model.reduced, cores = 2)
-loo.normal   <- loo(model.normal, cores = 2)
-loo.possion <- loo(model.poisson, cores = 2)
+loo.null    <- loo(model.null, cores = 4)
+loo.full    <- loo(model.full, cores = 4)
+loo.reduced <- loo(model.reduced, cores = 4)
+loo.normal   <- loo(model.normal, cores = 4)
+loo.possion <- loo(model.poisson, cores = 4)
 
 compar_models <- loo_compare(loo.null, loo.full, loo.reduced, loo.normal, loo.possion)
 compar_models
@@ -693,7 +693,7 @@ However, the analysis performed, showed us that using all the parameters it is p
 
 At this point, it becomes useful to develop a sensitivity analysis over the prior using the full model, i.e. the one that performed better, in order to understand what are the prior that allow to improve the posterior distribution without shifting it from the mean value.  
 
-```{r}
+```{r echo = FALSE, results = 'hide'}
 # Different weakly informative prior choices with the full model
 
 datSetCluster <- na.omit(datSetCluster)
@@ -848,16 +848,20 @@ ggplot(distrLength, aes(ratio_ess, fill = distr)) + geom_histogram(alpha = 0.5, 
 ```{r}
 # Leave-one-out cross-validation over the models with different priors
 
-loo.uniform    <- loo(model.full.uniform, cores = 2)
-loo.normal    <- loo(model.full.normal, cores = 2)
-loo.student <- loo(model.full.student, cores = 2)
-loo.cauchy   <- loo(model.full.cauchy, cores = 2)
+loo.uniform    <- loo(model.full.uniform, cores = 4)
+loo.normal    <- loo(model.full.normal, cores = 4)
+loo.student <- loo(model.full.student, cores = 4)
+loo.cauchy   <- loo(model.full.cauchy, cores = 4)
 compar_models_prior <- loo_compare(loo.uniform, loo.normal, loo.student, loo.cauchy)
 compar_models_prior
 
 ```
 
 Observing the values of the relative elpd among the model tested in this section, the one that performs better is the one with a cauchy distribution as prior. 
+
+
+
+
 
 
 ## Age prediction
@@ -892,6 +896,10 @@ print(fitStan, pars = c('beta', 'sigma'))
 
 ```
 
+
+
+
+
 ```{r}
 
 log_like_model <- extract_log_lik(fitStan, merge_chains = FALSE)
@@ -903,6 +911,9 @@ elpd_loo_mod <- loo_mod$estimates[1]
 elpd_loo_mod
 
 ```
+
+
+
 
 
 ```{r}
@@ -939,6 +950,10 @@ print(fitStan_complete, pars = c('beta', 'sigma'))
 
 
 ```
+
+
+
+
 
 
 ```{r}
