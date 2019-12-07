@@ -693,6 +693,149 @@ However, the analysis performed, showed us that using all the parameters it is p
 
 At this point, it becomes useful to develop a sensitivity analysis over the prior using the full model, i.e. the one that performed better, in order to understand what are the prior that allow to improve the posterior distribution without shifting it from the mean value.  
 
+```{r}
+# Different weakly informative prior choices with the full model
+
+datSetCluster <- na.omit(datSetCluster)
+
+model.full.uniform <- stan_glm(
+  as.numeric(Died) ~ as.numeric(Urban) + as.numeric(Year) + as.numeric(Sex) + as.numeric(Age) + as.numeric(Education) + as.numeric(Occupation) + as.numeric(method) +
+  as.numeric(Season),
+  data = datSetCluster,
+  family = binomial(link = "logit"),
+  prior = NULL,
+  prior_intercept = NULL,
+  QR = TRUE,
+  chains = 5,
+  iter = 2000,
+  warmup = 1000
+)
+
+model.full.normal <- stan_glm(
+  as.numeric(Died) ~ as.numeric(Urban) + as.numeric(Year) + as.numeric(Sex) + as.numeric(Age) + as.numeric(Education) + as.numeric(Occupation) + as.numeric(method) +
+  as.numeric(Season),
+  data = datSetCluster,
+  family = binomial(link = "logit"),
+  prior = normal(0,5),
+  prior_intercept = NULL,
+  QR = TRUE,
+  chains = 5,
+  iter = 2000,
+  warmup = 1000
+)
+
+model.full.student <- stan_glm(
+  as.numeric(Died) ~ as.numeric(Urban) + as.numeric(Year) + as.numeric(Sex) + as.numeric(Age) + as.numeric(Education) + as.numeric(Occupation) + as.numeric(method) +
+  as.numeric(Season),
+  data = datSetCluster,
+  family = binomial(link = "logit"),
+  prior = student_t(1,0,2.5),
+  prior_intercept = NULL,
+  QR = TRUE,
+  chains = 5,
+  iter = 2000,
+  warmup = 1000
+)
+
+model.full.cauchy <- stan_glm(
+  as.numeric(Died) ~ as.numeric(Urban) + as.numeric(Year) + as.numeric(Sex) + as.numeric(Age) + as.numeric(Education) + as.numeric(Occupation) + as.numeric(method) +
+  as.numeric(Season),
+  data = datSetCluster,
+  family = binomial(link = "logit"),
+  prior = cauchy(0,4),
+  prior_intercept = NULL,
+  QR = TRUE,
+  chains = 5,
+  iter = 2000,
+  warmup = 1000
+)
+
+```
+
+
+```{r}
+
+# Density plots
+dens.uniform <- stan_dens(model.full.uniform, pars = c('as.numeric(Urban)', 'as.numeric(Sex)', 'as.numeric(Age)', 'as.numeric(Education)', 'as.numeric(Occupation)'))
+dens.uniform + ggtitle('Plots for uniform prior') 
+dens.normal <- stan_dens(model.full.normal, pars = c('as.numeric(Urban)', 'as.numeric(Sex)', 'as.numeric(Age)', 'as.numeric(Education)', 'as.numeric(Occupation)'))
+dens.normal + ggtitle('Plots for normal prior')
+dens.student <- stan_dens(model.full.student, pars = c('as.numeric(Urban)', 'as.numeric(Sex)', 'as.numeric(Age)', 'as.numeric(Education)', 'as.numeric(Occupation)'))
+dens.student + ggtitle('Plots for student prior')
+dens.cauchy <- stan_dens(model.full.cauchy, pars = c('as.numeric(Urban)', 'as.numeric(Sex)', 'as.numeric(Age)', 'as.numeric(Education)', 'as.numeric(Occupation)'))
+dens.cauchy + ggtitle('Plots for cauchy prior')
+
+
+# Trace plots
+
+trace.uniform <- stan_trace(model.full.uniform, pars = c('as.numeric(Urban)', 'as.numeric(Sex)', 'as.numeric(Age)', 'as.numeric(Education)', 'as.numeric(Occupation)'))
+trace.uniform + scale_color_brewer(type = 'div') + ggtitle('Plots for uniform prior') 
+trace.normal <- stan_trace(model.full.normal, pars = c('as.numeric(Urban)', 'as.numeric(Sex)', 'as.numeric(Age)', 'as.numeric(Education)', 'as.numeric(Occupation)'))
+trace.normal + scale_color_brewer(type = 'div') + ggtitle('Plots for normal prior')
+trace.student <- stan_trace(model.full.student, pars = c('as.numeric(Urban)', 'as.numeric(Sex)', 'as.numeric(Age)', 'as.numeric(Education)', 'as.numeric(Occupation)'))
+trace.student + scale_color_brewer(type = 'div') + ggtitle('Plots for student prior')
+trace.cauchy <- stan_trace(model.full.cauchy, pars = c('as.numeric(Urban)', 'as.numeric(Sex)', 'as.numeric(Age)', 'as.numeric(Education)', 'as.numeric(Occupation)'))
+trace.cauchy + scale_color_brewer(type = 'div') + ggtitle('Plots for cauchy prior')
+
+```
+
+```{r}
+
+# Rhat histogram plots
+
+rhat.uniform <- stan_rhat(model.full.uniform, bins = 50)
+rhat.normal <- stan_rhat(model.full.normal, bins = 50)
+rhat.student <- stan_rhat(model.full.student, bins = 50)
+rhat.cauchy <- stan_rhat(model.full.cauchy, bins = 50)
+
+uniform <- data.frame(rhat = rhat.uniform$data$stat)
+normal <- data.frame(rhat = rhat.normal$data$stat)
+student <- data.frame(rhat = rhat.student$data$stat)
+cauchy <- data.frame(rhat = rhat.cauchy$data$stat)
+
+uniform$distr <-  'uniform'
+normal$distr  <- 'normal'
+student$distr <-  'student'
+cauchy$distr  <- 'cauchy'
+
+
+distrLength <- rbind(uniform, normal, student, cauchy)
+
+ggplot(distrLength, aes(rhat, fill = distr)) + geom_histogram(alpha = 0.5, aes(y = ..density..), bins = 50)+ scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2")
+
+
+
+```
+
+
+```{r}
+
+# Ess histogram plots
+
+ess.uniform <- stan_ess(model.full.uniform, bins = 50)
+ess.normal <- stan_ess(model.full.normal, bins = 50)
+ess.student <- stan_ess(model.full.student, bins = 50)
+ess.cauchy <- stan_ess(model.full.cauchy, bins = 50)
+
+uniform <- data.frame(ratio_ess = ess.uniform$data$stat)
+normal <- data.frame(ratio_ess = ess.normal$data$stat)
+student <- data.frame(ratio_ess = ess.student$data$stat)
+cauchy <- data.frame(ratio_ess = ess.cauchy$data$stat)
+
+uniform$distr <-  'uniform'
+normal$distr  <- 'normal'
+student$distr <-  'student'
+cauchy$distr  <- 'cauchy'
+
+
+distrLength <- rbind(uniform, normal, student, cauchy)
+
+ggplot(distrLength, aes(ratio_ess, fill = distr)) + geom_histogram(alpha = 0.5, aes(y = ..density..), bins = 50)+ scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2")
+
+
+
+```
+
 
 ## Age prediction
 ```{r}
