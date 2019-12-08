@@ -36,6 +36,7 @@ library(phonTools)
 library(rcompanion)
 library(rstan)
 library(rstanarm)
+library(shinystan)
 library(tableone)
 library(tinytex)
 
@@ -860,7 +861,11 @@ compar_models_prior
 
 Observing the values of the relative elpd among the model tested in this section, the one that performs better is the one with a cauchy distribution as prior. 
 
-
+```{r}
+y_tilde <- posterior_predict(model.full.cauchy, draws = 500)
+color_scheme_set("brightblue")
+ppc_dens_overlay(as.numeric(died), y_tilde[1:50, ])
+```
 
 
 
@@ -891,7 +896,8 @@ fitStan <- stan(model_code = stan_code,
                 thin = 10,
                 refresh = 0,
                 seed = 12345,
-                control = list(adapt_delta = 0.95))
+                control = list(adapt_delta = 0.95),
+                refresh = 0)
 print(fitStan, pars = c('beta', 'sigma'))
 
 
@@ -946,7 +952,8 @@ fitStan_complete <- stan(model_code = stan_code_complete,
                 thin = 10,
                 refresh = 0,
                 seed = 12345,
-                control = list(adapt_delta = 0.95))
+                control = list(adapt_delta = 0.95),
+                refresh = 0)
 print(fitStan_complete, pars = c('beta', 'sigma'))
 
 
@@ -970,9 +977,10 @@ elpd_loo_mod_comp
 ```
 
 ```{r}
-y_tilde <- posterior_predict(model.full.cauchy, draws = 500)
-color_scheme_set("brightblue")
-ppc_dens_overlay(as.numeric(died), y_tilde[1:50, ])
+posterior <- as.array(fitStan_complete)
+
+
+mcmc_dens_overlay(posterior, pars = c("beta[1]", "predict_age")) 
 ```
 
 \clearpage
