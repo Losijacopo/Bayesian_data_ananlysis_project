@@ -42,6 +42,53 @@ library(tinytex)
 
 ```
 
+
+
+\clearpage
+
+# Introduction
+This project is based on a study carried out in 2015 by a group of researchers to estimate the incidence of serious suicide attempts in Shandong, China, and to examine the factors associated with fatality among the attempters. \newline
+We have chosen to examine a dataset on suicides because it is a really important but often underconsidered problem in today's society. Not only this problem reflects a larger problem in a country societal system but it can also be a burden for hospital resources. We think that by being able to talk about it more openly and by truly trying to estimate its size and impact we can start to understand where the causes are rooted and what can be done to fight it. \newline
+We invite the reader to check the source section to further read about the setting and results of the named paper. \newline
+In this report we will carry out our analysis following the bayesian approach. Since also the frequentist approach was covered during lecture, we though that it was meaningful to compare the two at the begininning of the analysis.\newline
+Adopting then the bayesian approach we will first develop a multiple logistic regression model using all the variables, after that we will do variable selection to determine which are the most influential factors and develop a second multiple logistic regression model using the selected variables. After that, we will assess the convergence and efficiency of the models, do posterior predictive checking and compare the models. To conclude we carry out a prediction on the age of the attempters and eventually answer our analysis problem. 
+
+
+## Analysis Problem
+
+The objective of the project is to use the bayesian approach to develop models to evaluate the most influential factors related to serious suicide attempts (SSAs, defined as suicide attempts resulting in either death or hospitalisation) and being able to make predictions on the age of the attempters. 
+
+
+
+## Data 
+Data from two independent health surveillance systems were linked, constituted by records of suicide deaths and hospitalisations that occured among residents in selected countries during 2009-2011.  
+The data set is constituted by 2571 observations of 11 variables:
+\begin{itemize}
+  \item \texttt{Person\_ID}: ID number, $1,...,2571$
+  \item \texttt{Hospitalised}: \textit{yes} or \textit{no}
+  \item \texttt{Died}: \textit{yes} or \textit{no}
+  \item \texttt{Urban}: \textit{yes}, \textit{no} or \textit{unknown}
+  \item \texttt{Year}: $2009$, $2010$ or $2011$
+  \item \texttt{Month}: $1,...,12$
+  \item \texttt{Sex}: \textit{female} or \textit{male}
+  \item \texttt{Age}: years
+  \item \texttt{Education}: \textit{iliterate}, \textit{primary}, \textit{Secondary}, \textit{Tertiary} or \textit{unknown}
+  \item \texttt{Occupation}: one of ten categories
+  \item \texttt{method}: one of nine methods
+\end{itemize}
+It is important to notice that the population in the study is predominantly rural and that the limitation of the study is that the incidence estimates are likely to be underestimated due to underreporting in both surveillance systems. 
+
+
+
+
+## Source
+
+Sun J, Guo X, Zhang J, Wang M, Jia C, Xu A (2015) "Incidence and fatality of serious suicide attempts in a predominantly rural population in Shandong, China: a public health surveillance study," BMJ Open 5(2): e006762. https://doi.org/10.1136/bmjopen-2014-006762
+
+Data downloaded via Dryad Digital Repository. https://doi.org/10.5061/dryad.r0v35
+
+
+## Data prepreocessing
 ```{r}
 
 datFile <- "suicide attempt data_2.csv"
@@ -157,59 +204,30 @@ datSetCluster$Age[indexAgeFour]  <- 4   # 4 --> >65
 
 \clearpage
 
-# Introduction
-This project is based on a study carried out in 2015 by a group of researchers to estimate the incidence of serious suicide attempts in Shandong, China, and to examine the factors associated with fatality among the attempters. \newline
-We have chosen to examine a dataset on suicides because it is a really important but often underconsidered problem in today's society. Not only this problem reflects a larger problem in a country societal system but it can also be a burden for hospital resources. We think that by being able to talk about it more openly and by truly trying to estimate its size and impact we can start to understand where the causes are rooted and what can be done to fight it. \newline
-We invite the reader to check the source section to further read about the setting and results of the named paper. \newline
-In this report we will carry out our analysis following the bayesian approach. Since also the frequentist approach was covered during lecture, we though that it was meaningful to compare the two at the begininning of the analysis.\newline
-Adopting then the bayesian approach we will first develop a multiple logistic regression model using all the variables, after that we will do variable selection to determine which are the most influential factors and develop a second multiple logistic regression model using the selected variables. After that, we will assess the convergence and efficiency of the models, do posterior predictive checking and compare the models. To conclude we carry out a prediction on the age of the attempters and eventually answer our analysis problem. 
-
-
-## Analysis Problem
-
-The objective of the project is to use the bayesian approach to develop models to evaluate the most influential factors related to serious suicide attempts (SSAs, defined as suicide attempts resulting in either death or hospitalisation) and being able to make predictions on the age of the attempters. 
-
-
-
-## Data 
-Data from two independent health surveillance systems were linked, constituted by records of suicide deaths and hospitalisations that occured among residents in selected countries during 2009-2011.  
-The data set is constituted by 2571 observations of 11 variables:
-\begin{itemize}
-  \item \texttt{Person\_ID}: ID number, $1,...,2571$
-  \item \texttt{Hospitalised}: \textit{yes} or \textit{no}
-  \item \texttt{Died}: \textit{yes} or \textit{no}
-  \item \texttt{Urban}: \textit{yes}, \textit{no} or \textit{unknown}
-  \item \texttt{Year}: $2009$, $2010$ or $2011$
-  \item \texttt{Month}: $1,...,12$
-  \item \texttt{Sex}: \textit{female} or \textit{male}
-  \item \texttt{Age}: years
-  \item \texttt{Education}: \textit{iliterate}, \textit{primary}, \textit{Secondary}, \textit{Tertiary} or \textit{unknown}
-  \item \texttt{Occupation}: one of ten categories
-  \item \texttt{method}: one of nine methods
-\end{itemize}
-It is important to notice that the population in the study is predominantly rural and that the limitation of the study is that the incidence estimates are likely to be underestimated due to underreporting in both surveillance systems. 
-
-
-
-
-## Source
-
-Sun J, Guo X, Zhang J, Wang M, Jia C, Xu A (2015) "Incidence and fatality of serious suicide attempts in a predominantly rural population in Shandong, China: a public health surveillance study," BMJ Open 5(2): e006762. https://doi.org/10.1136/bmjopen-2014-006762
-
-Data downloaded via Dryad Digital Repository. https://doi.org/10.5061/dryad.r0v35
-
-
-\clearpage
-
 
 # Analysis
+The analysis is structures as follows:
+\begin{itemize}
+  \item \textbf{Bayesian vs Frequentist}: we will compare the frequentist and the bayesian approach by developing two multiple logistic regression models and assigning to the bayesian model the default flat priors in Stan;
+  \item \textbf{Parameter Selection}: we will evaluate the most influential factors on the fatality of the SSAs and their correlation to develop the reduced logistic regression model in the following analysis;
+  \item \textbf{Full and reduced logistic regression models}: after the parameters selection, we develop a first model comparison between the full logistic regression model and the reduced one (the one where we only considered the factors selected in the parameter selection phase);
+  \item \textbf{Convergence and efficiency analysis}: convergence and efficiency of the models have been assessed using Rhat and ESS respectively and also Hamiltonian Monte Carlo (HMC) specific diagnostic have been computed on both of the models(tree depth and divergence);
+  \item \textbf{Model comparison}: the full and the reduced models have been compared by using leave-one-out cross-validation and the best model has been selected for the remaining analysis; 
+  \item \textbf{Sensitivity analysis}: different priors have been tested on the best model selected in the previous phase, the convergence and efficiency of the resulting models assessed and these compared using loo-cv;
+  \item \textbf{Predictive checking}: the best model selected in the sensitivity analysis has been used to carry out a predictive checking;
+  \item \textbf{Age prediction}: to conclude we decided to choose one of the most influential parameters to generate a prediction and anser our analysis problem.
+\end{itemize}
 
-
-## Model description 
-In order to evaluate the factors which influence the probability of SSA the most it is an obvious chioice to develop a multiple logistic regression model.
+## Bayesian vs. Frequentist
 
 
 As already said, at first we evaluated a comparison between the frequentist and the bayesian approach, in order to provide an analysis of the dataset with both models, being the two approaches discussed during the lectures.
+
+### Model description
+In order to evaluate the factors which influence the probability of SSA the most it is an obvious chioice to develop a multiple logistic regression model.
+
+### Prior choices
+For the first bayesian model  we have assumed flat prior.
 
 Thus, the two model follow below.
 
@@ -303,11 +321,9 @@ Therefore, regarding the analysis that will follow, we first developed two model
 
 At the end of the analysis we have devoloped two other models to predict the age of the attempters. These two models correspond to a full model with all the parameters and a reduced one with only the most relevant parameters once again. \newline
 
-## Prior choices
-For the fist models (where we evaluated the incidence of the parameters on the fatality of attempts) we have assumed flat priors while in the last two models we have decided to assign a weakly informative prior to the standard deviation $\sigma \sim N(0,10)$ since the mean $\mu$ was too sensible to prior choices. 
 
 
-## Code 
+## Parameter selection
 
 ### Data loading 
 
@@ -482,7 +498,7 @@ From the analysis done above, and especially looking at the histogram, it is cle
 Therefore, for further analysis, it will be good to develop specific analysis using only these parameters, in order to have a more precise evalution considering only the most relevant parameters. 
 
 
-## Full logistic regression model 
+### Full logistic regression model 
 For completeness we report here the full model once again. 
 ```{r}
 ## FULL LOGISTIC REGRESSION MODEL
@@ -495,7 +511,7 @@ cat(stan_code_full)
 ```
 
 
-## Reduced logistic regression model
+### Reduced logistic regression model
 We can now implement the reduced logistic regression model using the selected parameters. 
 
 ```{r}
@@ -509,7 +525,7 @@ cat(stan_code_simple_def)
 ```
 
 
-## Stan Code Running
+### Stan Code Running
 Now we are going to run the model on the full dataset. \newline
 First we define the Stan data to run the second (reduced) model. 
 ```{r}
@@ -559,7 +575,7 @@ print(resStanRed, pars = c('beta'))
 
 ```
 
-## Convergence Analysis
+## Convergence and efficiency analysis
 In this section we are going to analyse the implemented models, both in terms of convergence (assessed using R-hat and HMC specific convergence diagnostic) and efficiency (by computing the Effective Sample Size). \newline
 
 
@@ -591,7 +607,15 @@ As for the Rhat values we can directly observe the effective sample size values 
 
 
 
-## Posterior Predictive Checking 
+
+
+## Model comparison
+
+
+
+
+
+## Sensitivity analysis
 
 In order to develop a precise posterior predictive checking and a model comparison, it was decided to use the built-in Stan function \texttt{stan\_glm}.
 This was mainly done for treatability reason. As a matter of fact, with the defined function it is easier to create different Stan models, add priors and genearate new sample from the posterior. 
@@ -671,7 +695,7 @@ summary(model.poisson)
 
 ```
 
-## Model Comparison
+### Model Comparison
 
 In this section the implemented models are compared using leave-one-out cross-validation. 
 
@@ -691,7 +715,7 @@ As it is possible to see from the analysis done above, the model that performs b
 Regarding the result, at the beginning we though that the model could suffer for overfitting using all the parameters. 
 However, the analysis performed, showed us that using all the parameters it is possible to obtain the best fitting.
 
-## Prior sensitivity analysis
+### Prior sensitivity analysis
 
 At this point, it becomes useful to develop a sensitivity analysis over the prior using the full model, i.e. the one that performed better, in order to understand what are the prior that allow to improve the posterior distribution without shifting it from the mean value.  
 
