@@ -607,15 +607,7 @@ As for the Rhat values we can directly observe the effective sample size values 
 
 
 
-
-
 ## Model comparison
-
-
-
-
-
-## Sensitivity analysis
 
 In order to develop a precise posterior predictive checking and a model comparison, it was decided to use the built-in Stan function \texttt{stan\_glm}.
 This was mainly done for treatability reason. As a matter of fact, with the defined function it is easier to create different Stan models, add priors and genearate new sample from the posterior. 
@@ -695,7 +687,6 @@ summary(model.poisson)
 
 ```
 
-### Model Comparison
 
 In this section the implemented models are compared using leave-one-out cross-validation. 
 
@@ -715,7 +706,7 @@ As it is possible to see from the analysis done above, the model that performs b
 Regarding the result, at the beginning we though that the model could suffer for overfitting using all the parameters. 
 However, the analysis performed, showed us that using all the parameters it is possible to obtain the best fitting.
 
-### Prior sensitivity analysis
+## Sensitivity analysis
 
 At this point, it becomes useful to develop a sensitivity analysis over the prior using the full model, i.e. the one that performed better, in order to understand what are the prior that allow to improve the posterior distribution without shifting it from the mean value.  
 
@@ -904,6 +895,8 @@ compar_models_prior <- loo_compare(loo.uniform, loo.normal, loo.student, loo.cau
 compar_models_prior
 
 ```
+
+## Predictive checking
 
 Observing the values of the relative elpd among the model tested in this section, the one that performs better is the one with a cauchy distribution as prior. 
 
