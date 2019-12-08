@@ -1,0 +1,31 @@
+\contentsline {section}{Introduction}{2}{section*.2}% 
+\contentsline {subsection}{Analysis Problem}{2}{section*.3}% 
+\contentsline {subsection}{Data}{2}{section*.4}% 
+\contentsline {subsection}{Source}{3}{section*.5}% 
+\contentsline {section}{Analysis}{4}{section*.6}% 
+\contentsline {subsection}{Data prepreocessing}{4}{section*.7}% 
+\contentsline {subsection}{Bayesian vs.\nobreakspace {}Frequentist}{6}{section*.8}% 
+\contentsline {subsubsection}{Model description}{6}{section*.9}% 
+\contentsline {subsubsection}{Prior choices}{6}{section*.10}% 
+\contentsline {subsubsection}{Frequentist approach}{7}{section*.11}% 
+\contentsline {subsubsection}{Bayesian approach using Stan}{7}{section*.12}% 
+\contentsline {subsubsection}{Comparison between frequentist and bayesian approach}{9}{section*.13}% 
+\contentsline {subsection}{Parameter selection}{11}{section*.14}% 
+\contentsline {subsubsection}{Data loading}{11}{section*.15}% 
+\contentsline {subsubsection}{Full logistic regression model}{11}{section*.16}% 
+\contentsline {subsubsection}{Stan Code Running}{13}{section*.17}% 
+\contentsline {subsubsection}{Variable selection}{13}{section*.18}% 
+\contentsline {subsubsection}{Full logistic regression model}{16}{section*.19}% 
+\contentsline {subsubsection}{Reduced logistic regression model}{17}{section*.20}% 
+\contentsline {subsubsection}{Stan Code Running}{18}{section*.21}% 
+\contentsline {subsection}{Convergence and efficiency analysis}{19}{section*.22}% 
+\contentsline {subsubsection}{R-hat}{19}{section*.23}% 
+\contentsline {subsubsection}{HMC}{19}{section*.24}% 
+\contentsline {subsubsection}{ESS}{20}{section*.25}% 
+\contentsline {subsection}{Model comparison}{21}{section*.26}% 
+\contentsline {subsection}{Sensitivity analysis}{26}{section*.27}% 
+\contentsline {subsection}{Predictive checking}{36}{section*.28}% 
+\contentsline {subsection}{Age prediction}{37}{section*.29}% 
+\contentsline {section}{Conclusions}{41}{section*.30}% 
+\contentsline {subsection}{Problems encountered}{41}{section*.31}% 
+\contentsline {subsection}{Potential improvements}{41}{section*.32}% 

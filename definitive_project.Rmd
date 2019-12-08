@@ -796,7 +796,7 @@ model.full.cauchy <- stan_glm(
 ```
 
 
-```{r}
+```{r warning=FALSE}
 
 # Density plots
 dens.uniform <- stan_dens(model.full.uniform, pars = c('as.numeric(Urban)', 'as.numeric(Sex)', 'as.numeric(Age)', 'as.numeric(Education)', 'as.numeric(Occupation)'))
@@ -906,10 +906,12 @@ Therefore, in order to develop the predictive checking that model was used.
 
 Observing the values of the relative elpd among the model tested in this section, the one that performs better is the one with a cauchy distribution as prior. 
 
-```{r}
+```{r, eval=FALSE, echo=TRUE, include=TRUE}
+y <- as.numeric(datSetCluster$Died)
+
 y_tilde <- posterior_predict(model.full.cauchy, draws = 500)
 color_scheme_set("brightblue")
-ppc_dens_overlay(as.numeric(died), y_tilde[1:50, ])
+ppc_dens_overlay(y, y_tilde[1:50, ])
 ```
 
 
@@ -918,59 +920,11 @@ Thus, noticing this, it is possible to conclude that the model works fine.
 
 
 ## Age prediction
-```{r}
 
-data_4_fit <- list(N = nrow(datSet),
-                   p = 6,
-                   age = as.numeric(datSet$Age),
-                   died = as.numeric(datSet$Died),
-                   sex = as.numeric(datSet$Sex),
-                   job = as.numeric(datSet$Occupation),
-                   urban = as.numeric(datSet$Urban),
-                   edu = as.numeric(datSet$Education))
+To conclude we want to predict the most probable age of the attempters. A full logistic regression model is implemented with a normal prior over the standard deviation $\sigma \sim N(0,10)$, its convergence and efficiency verified and the posterior prediction generated using a prior over the mean $\mu_p \sim N(60, 10)$.
 
 
-fileName <- "./stan_model_with_prior.stan"
-stan_code <- readChar(fileName, file.info(fileName)$size)
-cat(stan_code)
-
-# Run Stan
-fitStan <- stan(model_code = stan_code,
-                data = data_4_fit,
-                chains = 5, 
-                iter = 2000, 
-                warmup = 800,
-                thin = 10,
-                refresh = 0,
-                seed = 12345,
-                control = list(adapt_delta = 0.95),
-                refresh = 0)
-print(fitStan, pars = c('beta', 'sigma'))
-
-
-```
-
-
-
-
-
-```{r}
-
-log_like_model <- extract_log_lik(fitStan, merge_chains = FALSE)
-r_eff <- relative_eff(exp(log_like_model))
-loo_mod <- loo(log_like_model, r_eff = r_eff)
-print(loo_mod)
-plot(loo_mod)
-elpd_loo_mod <- loo_mod$estimates[1]
-elpd_loo_mod
-
-```
-
-
-
-
-
-```{r}
+```{r warning=FALSE}
 
 data_4_fit_complete <- list(N = nrow(datSet),
                    p = 10,
@@ -1007,22 +961,6 @@ print(fitStan_complete, pars = c('beta', 'sigma','predict_age'))
 ```
 
 
-
-
-
-
-```{r}
-
-log_like_model_compl <- extract_log_lik(fitStan_complete, merge_chains = FALSE)
-r_eff <- relative_eff(exp(log_like_model_compl))
-loo_mod_comp <- loo(log_like_model_compl, r_eff = r_eff)
-print(loo_mod_comp)
-plot(loo_mod_comp)
-elpd_loo_mod_comp <- loo_mod_comp$estimates[1]
-elpd_loo_mod_comp
-
-```
-
 ```{r}
 posterior <- as.array(fitStan_complete)
 
@@ -1035,6 +973,9 @@ mcmc_dens_overlay(posterior, pars = c("beta[1]", "predict_age")) + ggtitle("Post
 
 
 # Conclusions
+
+The most infulential factors related to SSAs are occupation, whether the individual lives in a rural or an urban environment, age and education level. However we have also noticed that the remaining factors are important in order to build a descriptive model of the phenomenon, since the full model showed to be consistently better thatn the reduced one. \newline
+The age prediction confirmed the results of the analysis carried out by the authors of the paper we refferred in our project, giving an average value of 65 years of age.
 
 
 ## Problems encountered
