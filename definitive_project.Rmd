@@ -36,6 +36,7 @@ library(phonTools)
 library(rcompanion)
 library(rstan)
 library(rstanarm)
+library(shinystan)
 library(tableone)
 library(tinytex)
 
@@ -895,7 +896,8 @@ fitStan <- stan(model_code = stan_code,
                 thin = 10,
                 refresh = 0,
                 seed = 12345,
-                control = list(adapt_delta = 0.95))
+                control = list(adapt_delta = 0.95),
+                refresh = 0)
 print(fitStan, pars = c('beta', 'sigma'))
 
 
@@ -950,7 +952,8 @@ fitStan_complete <- stan(model_code = stan_code_complete,
                 thin = 10,
                 refresh = 0,
                 seed = 12345,
-                control = list(adapt_delta = 0.95))
+                control = list(adapt_delta = 0.95),
+                refresh = 0)
 print(fitStan_complete, pars = c('beta', 'sigma'))
 
 
@@ -974,9 +977,10 @@ elpd_loo_mod_comp
 ```
 
 ```{r}
-post_age <- extract(fitStan_complete$age)
-plot(post_age)
+posterior <- as.array(fitStan_complete)
 
+
+mcmc_dens_overlay(posterior, pars = c("beta[1]", "predict_age")) 
 ```
 
 \clearpage

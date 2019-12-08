@@ -32,6 +32,7 @@ data {
  
 parameters {
   // Define parameters to estimate
+  real mu_p;
   real beta[p];
   
   // standard deviation (a positve real number)
@@ -50,6 +51,7 @@ transformed parameters  {
  
 model {
   // Weakly informative prior
+  mu_p ~ normal(60, 10);
   //mu ~ normal(0.5, 10);
   sigma ~ normal(0,10);
   
@@ -60,8 +62,9 @@ model {
 
 generated quantities{
   vector[N] log_lik;
+  real predict_age;
     
   for (i in 1:N)
     log_lik[i] = normal_lpdf(age[i] | mu[i], sigma);
-    
+  predict_age = normal_rng(mu_p, sigma);
 }
