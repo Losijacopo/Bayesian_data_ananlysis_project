@@ -88,6 +88,24 @@ Sun J, Guo X, Zhang J, Wang M, Jia C, Xu A (2015) "Incidence and fatality of ser
 Data downloaded via Dryad Digital Repository. https://doi.org/10.5061/dryad.r0v35
 
 
+
+
+\clearpage
+
+
+# Analysis
+The analysis is structures as follows:
+\begin{itemize}
+  \item \textbf{Bayesian vs Frequentist}: we will compare the frequentist and the bayesian approach by developing two multiple logistic regression models and assigning to the bayesian model the default flat priors in Stan;
+  \item \textbf{Parameter Selection}: we will evaluate the most influential factors on the fatality of the SSAs and their correlation to develop the reduced logistic regression model in the following analysis;
+  \item \textbf{Full and reduced logistic regression models}: after the parameters selection, we develop a first model comparison between the full logistic regression model and the reduced one (the one where we only considered the factors selected in the parameter selection phase);
+  \item \textbf{Convergence and efficiency analysis}: convergence and efficiency of the models have been assessed using Rhat and ESS respectively and also Hamiltonian Monte Carlo (HMC) specific diagnostic have been computed on both of the models(tree depth and divergence);
+  \item \textbf{Model comparison}: different models, designed using different families of distributions, have been compared by using leave-one-out cross-validation and the best model has been selected for the remaining analysis; 
+  \item \textbf{Sensitivity analysis}: different priors have been tested on the best model selected in the previous phase, the convergence and efficiency of the resulting models assessed and these compared using loo-cv;
+  \item \textbf{Predictive checking}: the best model selected in the sensitivity analysis has been used to carry out a predictive checking;
+  \item \textbf{Age prediction}: to conclude we decided to choose one of the most influential parameters to generate a prediction and answer our analysis problem.
+\end{itemize}
+
 ## Data prepreocessing
 ```{r}
 
@@ -202,22 +220,6 @@ datSetCluster$Age[indexAgeFour]  <- 4   # 4 --> >65
 ```
 
 
-\clearpage
-
-
-# Analysis
-The analysis is structures as follows:
-\begin{itemize}
-  \item \textbf{Bayesian vs Frequentist}: we will compare the frequentist and the bayesian approach by developing two multiple logistic regression models and assigning to the bayesian model the default flat priors in Stan;
-  \item \textbf{Parameter Selection}: we will evaluate the most influential factors on the fatality of the SSAs and their correlation to develop the reduced logistic regression model in the following analysis;
-  \item \textbf{Full and reduced logistic regression models}: after the parameters selection, we develop a first model comparison between the full logistic regression model and the reduced one (the one where we only considered the factors selected in the parameter selection phase);
-  \item \textbf{Convergence and efficiency analysis}: convergence and efficiency of the models have been assessed using Rhat and ESS respectively and also Hamiltonian Monte Carlo (HMC) specific diagnostic have been computed on both of the models(tree depth and divergence);
-  \item \textbf{Model comparison}: the full and the reduced models have been compared by using leave-one-out cross-validation and the best model has been selected for the remaining analysis; 
-  \item \textbf{Sensitivity analysis}: different priors have been tested on the best model selected in the previous phase, the convergence and efficiency of the resulting models assessed and these compared using loo-cv;
-  \item \textbf{Predictive checking}: the best model selected in the sensitivity analysis has been used to carry out a predictive checking;
-  \item \textbf{Age prediction}: to conclude we decided to choose one of the most influential parameters to generate a prediction and anser our analysis problem.
-\end{itemize}
-
 ## Bayesian vs. Frequentist
 
 
@@ -320,7 +322,6 @@ Therefore, regarding the analysis that will follow, we first developed two model
 \end{itemize}
 
 At the end of the analysis we have devoloped two other models to predict the age of the attempters. These two models correspond to a full model with all the parameters and a reduced one with only the most relevant parameters once again. \newline
-
 
 
 ## Parameter selection
@@ -528,6 +529,7 @@ cat(stan_code_simple_def)
 ### Stan Code Running
 Now we are going to run the model on the full dataset. \newline
 First we define the Stan data to run the second (reduced) model. 
+
 ```{r}
 
 ## Create Stan data
@@ -539,7 +541,9 @@ dat_def <- list(N        = nrow(datSetCluster),
                 edu      = as.numeric(datSetCluster$Education))
 
 ```
+
 We first run the full model. The settings are the same as before except that now we are using the full dataset and default value for thin. 
+
 ```{r echo=FALSE}
 ## FULL LOGISTIC REGRESSION MODEL
 
@@ -557,7 +561,8 @@ print(resStanFull, pars = c('beta'))
 
 ```
 
-Now we run the reduced order model..
+Now we run the reduced order model.
+
 ```{r echo=FALSE}
 ## REDUCED LOGISTIC REGRESSION MODEL
 
@@ -576,41 +581,51 @@ print(resStanRed, pars = c('beta'))
 ```
 
 ## Convergence and efficiency analysis
+
 In this section we are going to analyse the implemented models, both in terms of convergence (assessed using R-hat and HMC specific convergence diagnostic) and efficiency (by computing the Effective Sample Size). \newline
 
 
 ### R-hat
+
 R-hat convergence diagnostic compares between- and within-chain estimates for model parameters and other univariate quantities of interest. If chains have not mixed well R-hat is larger than 1. In practical terms, it is good practice to use at least four chains and using the sample if R-hat is less than 1.05. \newline
 We can see from the result of \texttt{print(fit)} we have just displayed that all the Rhat values are equal to one for both the models and therefore we have convergence. 
 
 
 ### HMC
+
 Here we compute convergence diagnostic specific to Hamiltonian Monte Carlo, and in particular divergences and tree depth.\newline
 The following code computes the diagnostic for the full model:
+
 ```{r, fig.width=8, fig.height=5, warning=FALSE}
 ## Full model HMC diagnostic
 
 check_hmc_diagnostics(resStanFull)
 ```
+
 As we can see none of the interations ended with a divergence nor saturated the maximum tree depth. \newline
 Now we compute the diagnostic for the reduced model:
+
 ```{r, fig.width=8, fig.height=5, warning=FALSE}
 ## Reduced model HMC diagnostic
 
 check_hmc_diagnostics(resStanRed)
 ```
+
 Also for the reduced model none of the iterations ended with a divergence nor saturated the maximum tree depth. 
 
 ### ESS
+
 Effective sample size (ESS) measures the amount by which autocorrelation within the chains increases uncertainty in estimates. \newline
 As for the Rhat values we can directly observe the effective sample size values of the chains using the command \texttt{print(fit)}, already used. We can see that the sample size values are all sufficiently high for both model. 
-
 
 
 ## Model comparison
 
 In order to develop a precise posterior predictive checking and a model comparison, it was decided to use the built-in Stan function \texttt{stan\_glm}.
-This was mainly done for treatability reason. As a matter of fact, with the defined function it is easier to create different Stan models, add priors and genearate new sample from the posterior. 
+This was mainly done for treatability reason. As a matter of fact, with the defined function it is easier to create different Stan models, add priors and genearate new sample from the posterior. \newline
+
+As it is possible to understand from the R-code, which follows, the model comparison was developed designing models with different families of distribution. 
+
 
 ```{r echo=FALSE, results = 'hide'}
 ## Different Stan models, testing different distribution families and piors
@@ -702,13 +717,23 @@ compar_models <- loo_compare(loo.null, loo.full, loo.reduced, loo.normal, loo.po
 compar_models
 ```
 
-As it is possible to see from the analysis done above, the model that performs better is the one with all the parameters and in which the family distribution is the binomial one.
-Regarding the result, at the beginning we though that the model could suffer for overfitting using all the parameters. 
+As it is possible to see from the analysis done above, the model that performs better is the one with all the parameters and in which the family distribution is the binomial one. 
+This reflects our initial expectations. As a matter of fact, having the predictive data a binomial outcome, use that family of distributions for the model fitting will give the best results.
+
+Moreover, at the beginning we though that the model could suffer for overfitting using all the parameters. 
 However, the analysis performed, showed us that using all the parameters it is possible to obtain the best fitting.
 
 ## Sensitivity analysis
 
-At this point, it becomes useful to develop a sensitivity analysis over the prior using the full model, i.e. the one that performed better, in order to understand what are the prior that allow to improve the posterior distribution without shifting it from the mean value.  
+At this point, it becomes useful to develop a sensitivity analysis over the prior using the full model with the binomial distribution for the likelihood, i.e. the one that performed better, in order to understand what are the prior that allow to improve the posterior distribution without shifting it from the mean value.\newline
+Actually, the prior choices that were made are described below:
+
+\begin{itemize}
+  \item \textbf{Uniform Prior}
+  \item \textbf{Normal}: $N(0,5)$
+  \item \textbf{Student}: $Student_t(1,0,2.5)$
+  \item \textbf{Cauchy}: $Cauchy(0,4)$
+\end{itemize}
 
 ```{r echo = FALSE, results = 'hide'}
 # Different weakly informative prior choices with the full model
@@ -767,18 +792,6 @@ model.full.cauchy <- stan_glm(
   warmup = 1000
 )
 
-model.full.beta <- stan_glm(
-  as.numeric(Died) ~ as.numeric(Urban) + as.numeric(Year) + as.numeric(Sex) + as.numeric(Age) + as.numeric(Education) + as.numeric(Occupation) + as.numeric(method) +
-  as.numeric(Season),
-  data = datSetCluster,
-  family = binomial(link = "logit"),
-  prior = beta(0.5,0.5),
-  prior_intercept = NULL,
-  QR = TRUE,
-  chains = 5,
-  iter = 2000,
-  warmup = 1000
-)
 
 ```
 
@@ -794,8 +807,6 @@ dens.student <- stan_dens(model.full.student, pars = c('as.numeric(Urban)', 'as.
 dens.student + ggtitle('Plots for student prior')
 dens.cauchy <- stan_dens(model.full.cauchy, pars = c('as.numeric(Urban)', 'as.numeric(Sex)', 'as.numeric(Age)', 'as.numeric(Education)', 'as.numeric(Occupation)'))
 dens.cauchy + ggtitle('Plots for cauchy prior')
-dens.beta <- stan_dens(model.full.beta, pars = c('as.numeric(Urban)', 'as.numeric(Sex)', 'as.numeric(Age)', 'as.numeric(Education)', 'as.numeric(Occupation)'))
-dens.beta + ggtitle('Plots for beta prior')
 
 
 # Trace plots
@@ -808,8 +819,6 @@ trace.student <- stan_trace(model.full.student, pars = c('as.numeric(Urban)', 'a
 trace.student + scale_color_brewer(type = 'div') + ggtitle('Plots for student prior')
 trace.cauchy <- stan_trace(model.full.cauchy, pars = c('as.numeric(Urban)', 'as.numeric(Sex)', 'as.numeric(Age)', 'as.numeric(Education)', 'as.numeric(Occupation)'))
 trace.cauchy + scale_color_brewer(type = 'div') + ggtitle('Plots for cauchy prior')
-trace.beta <- stan_trace(model.full.beta, pars = c('as.numeric(Urban)', 'as.numeric(Sex)', 'as.numeric(Age)', 'as.numeric(Education)', 'as.numeric(Occupation)'))
-trace.beta + scale_color_brewer(type = 'div') + ggtitle('Plots for beta prior')
 
 ```
 
@@ -830,21 +839,18 @@ rhat.uniform <- stan_rhat(model.full.uniform, bins = 50)
 rhat.normal <- stan_rhat(model.full.normal, bins = 50)
 rhat.student <- stan_rhat(model.full.student, bins = 50)
 rhat.cauchy <- stan_rhat(model.full.cauchy, bins = 50)
-rhat.beta <- stan_rhat(model.full.beta, bins = 50)
 
 uniform <- data.frame(rhat = rhat.uniform$data$stat)
 normal <- data.frame(rhat = rhat.normal$data$stat)
 student <- data.frame(rhat = rhat.student$data$stat)
 cauchy <- data.frame(rhat = rhat.cauchy$data$stat)
-beta <- data.frame(rhat = rhat.beta$data$stat)
 
 uniform$distr <-  'uniform'
 normal$distr  <- 'normal'
 student$distr <-  'student'
 cauchy$distr  <- 'cauchy'
-beta$distr  <- 'beta'
 
-distrLength <- rbind(uniform, normal, student, cauchy, beta)
+distrLength <- rbind(uniform, normal, student, cauchy)
 
 ggplot(distrLength, aes(rhat, fill = distr)) + geom_histogram(alpha = 0.5, aes(y = ..density..), bins = 50)+ scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2")
 
@@ -861,21 +867,18 @@ ess.uniform <- stan_ess(model.full.uniform, bins = 50)
 ess.normal <- stan_ess(model.full.normal, bins = 50)
 ess.student <- stan_ess(model.full.student, bins = 50)
 ess.cauchy <- stan_ess(model.full.cauchy, bins = 50)
-ess.beta <- stan_ess(model.full.beta, bins = 50)
 
 uniform <- data.frame(ratio_ess = ess.uniform$data$stat)
 normal <- data.frame(ratio_ess = ess.normal$data$stat)
 student <- data.frame(ratio_ess = ess.student$data$stat)
 cauchy <- data.frame(ratio_ess = ess.cauchy$data$stat)
-beta <- data.frame(ratio_ess = ess.beta$data$stat)
 
 uniform$distr <-  'uniform'
 normal$distr  <- 'normal'
 student$distr <-  'student'
 cauchy$distr  <- 'cauchy'
-beta$distr  <- 'beta'
 
-distrLength <- rbind(uniform, normal, student, cauchy, beta)
+distrLength <- rbind(uniform, normal, student, cauchy)
 
 ggplot(distrLength, aes(ratio_ess, fill = distr)) + geom_histogram(alpha = 0.5, aes(y = ..density..), bins = 50)+ scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2")
 
@@ -890,11 +893,14 @@ loo.uniform    <- loo(model.full.uniform, cores = 4)
 loo.normal    <- loo(model.full.normal, cores = 4)
 loo.student <- loo(model.full.student, cores = 4)
 loo.cauchy   <- loo(model.full.cauchy, cores = 4)
-loo.beta <- loo(model.full.beta, cores = 4)
-compar_models_prior <- loo_compare(loo.uniform, loo.normal, loo.student, loo.cauchy, loo.beta)
+compar_models_prior <- loo_compare(loo.uniform, loo.normal, loo.student, loo.cauchy)
 compar_models_prior
 
 ```
+
+Observing the results of the loo-cv comparison, the models have almost the same performance. As a matter of fact the elpd indexes differ only slightly. 
+Besides this, the model that has the best performance is the one that uses a Cauchy distrbution as prior. \newline
+Therefore, in order to develop the predictive checking that model was used. 
 
 ## Predictive checking
 
@@ -907,6 +913,8 @@ ppc_dens_overlay(as.numeric(died), y_tilde[1:50, ])
 ```
 
 
+Observing the plot that results from the predictive checking, the generated values reflect the one of the initial posterior. 
+Thus, noticing this, it is possible to conclude that the model works fine.
 
 
 ## Age prediction
