@@ -991,9 +991,11 @@ mcmc_dens_overlay(posterior, pars = c("beta[1]", "predict_age"))
 
 
 ## Problems encountered
-
+Given the complexity of the structure of the problem, a lot of work has been required in order to understand what model would suit our analysis best and in what way it was necessary to process the data. Furthermore it has revealed really complex to carry out a meaningful analysis and to interpret the results. This effort resulted however in a great deal of experience with this kind of models and structure and gave us a much better intuition of the topics we had seen during lectures and we had applied in the assignments. 
 
 ## Potential improvements
+Based on the data at our disposal all relevant pieces of analysis were carried out based on standard multiple logistic regression model. In terms of bayesian reasoning, in order to improve the analysis a more complex model could be developed, like a model with a hierarchical structure, and longer exloration of prior distributions (and of hyperpriors) could be carried out. 
+
 
 
 
