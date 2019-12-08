@@ -19,6 +19,7 @@ knitr::opts_chunk$set(echo = TRUE, tidy = FALSE)
 
 library(aaltobda)
 library(arules)
+library(bayesplot)
 library(brms)
 library(devtools)
 library(dplyr)
@@ -968,7 +969,11 @@ elpd_loo_mod_comp
 
 ```
 
-
+```{r}
+y_tilde <- posterior_predict(model.full.cauchy, draws = 500)
+color_scheme_set("brightblue")
+ppc_dens_overlay(as.numeric(died), y_tilde[1:50, ])
+```
 
 \clearpage
 
