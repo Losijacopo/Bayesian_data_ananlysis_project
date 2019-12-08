@@ -860,7 +860,11 @@ compar_models_prior
 
 Observing the values of the relative elpd among the model tested in this section, the one that performs better is the one with a cauchy distribution as prior. 
 
-
+```{r}
+y_tilde <- posterior_predict(model.full.cauchy, draws = 500)
+color_scheme_set("brightblue")
+ppc_dens_overlay(as.numeric(died), y_tilde[1:50, ])
+```
 
 
 
@@ -970,9 +974,9 @@ elpd_loo_mod_comp
 ```
 
 ```{r}
-y_tilde <- posterior_predict(model.full.cauchy, draws = 500)
-color_scheme_set("brightblue")
-ppc_dens_overlay(as.numeric(died), y_tilde[1:50, ])
+post_age <- extract(fitStan_complete$age)
+plot(post_age)
+
 ```
 
 \clearpage
