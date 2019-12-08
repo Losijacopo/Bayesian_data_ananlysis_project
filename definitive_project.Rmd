@@ -752,6 +752,19 @@ model.full.cauchy <- stan_glm(
   warmup = 1000
 )
 
+model.full.beta <- stan_glm(
+  as.numeric(Died) ~ as.numeric(Urban) + as.numeric(Year) + as.numeric(Sex) + as.numeric(Age) + as.numeric(Education) + as.numeric(Occupation) + as.numeric(method) +
+  as.numeric(Season),
+  data = datSetCluster,
+  family = binomial(link = "logit"),
+  prior = beta(0.5,0.5),
+  prior_intercept = NULL,
+  QR = TRUE,
+  chains = 5,
+  iter = 2000,
+  warmup = 1000
+)
+
 ```
 
 
@@ -766,6 +779,8 @@ dens.student <- stan_dens(model.full.student, pars = c('as.numeric(Urban)', 'as.
 dens.student + ggtitle('Plots for student prior')
 dens.cauchy <- stan_dens(model.full.cauchy, pars = c('as.numeric(Urban)', 'as.numeric(Sex)', 'as.numeric(Age)', 'as.numeric(Education)', 'as.numeric(Occupation)'))
 dens.cauchy + ggtitle('Plots for cauchy prior')
+dens.beta <- stan_dens(model.full.beta, pars = c('as.numeric(Urban)', 'as.numeric(Sex)', 'as.numeric(Age)', 'as.numeric(Education)', 'as.numeric(Occupation)'))
+dens.beta + ggtitle('Plots for beta prior')
 
 
 # Trace plots
@@ -778,6 +793,8 @@ trace.student <- stan_trace(model.full.student, pars = c('as.numeric(Urban)', 'a
 trace.student + scale_color_brewer(type = 'div') + ggtitle('Plots for student prior')
 trace.cauchy <- stan_trace(model.full.cauchy, pars = c('as.numeric(Urban)', 'as.numeric(Sex)', 'as.numeric(Age)', 'as.numeric(Education)', 'as.numeric(Occupation)'))
 trace.cauchy + scale_color_brewer(type = 'div') + ggtitle('Plots for cauchy prior')
+trace.beta <- stan_trace(model.full.beta, pars = c('as.numeric(Urban)', 'as.numeric(Sex)', 'as.numeric(Age)', 'as.numeric(Education)', 'as.numeric(Occupation)'))
+trace.beta + scale_color_brewer(type = 'div') + ggtitle('Plots for beta prior')
 
 ```
 
@@ -798,19 +815,21 @@ rhat.uniform <- stan_rhat(model.full.uniform, bins = 50)
 rhat.normal <- stan_rhat(model.full.normal, bins = 50)
 rhat.student <- stan_rhat(model.full.student, bins = 50)
 rhat.cauchy <- stan_rhat(model.full.cauchy, bins = 50)
+rhat.beta <- stan_rhat(model.full.beta, bins = 50)
 
 uniform <- data.frame(rhat = rhat.uniform$data$stat)
 normal <- data.frame(rhat = rhat.normal$data$stat)
 student <- data.frame(rhat = rhat.student$data$stat)
 cauchy <- data.frame(rhat = rhat.cauchy$data$stat)
+beta <- data.frame(rhat = rhat.beta$data$stat)
 
 uniform$distr <-  'uniform'
 normal$distr  <- 'normal'
 student$distr <-  'student'
 cauchy$distr  <- 'cauchy'
+beta$distr  <- 'beta'
 
-
-distrLength <- rbind(uniform, normal, student, cauchy)
+distrLength <- rbind(uniform, normal, student, cauchy, beta)
 
 ggplot(distrLength, aes(rhat, fill = distr)) + geom_histogram(alpha = 0.5, aes(y = ..density..), bins = 50)+ scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2")
 
@@ -827,19 +846,21 @@ ess.uniform <- stan_ess(model.full.uniform, bins = 50)
 ess.normal <- stan_ess(model.full.normal, bins = 50)
 ess.student <- stan_ess(model.full.student, bins = 50)
 ess.cauchy <- stan_ess(model.full.cauchy, bins = 50)
+ess.beta <- stan_ess(model.full.beta, bins = 50)
 
 uniform <- data.frame(ratio_ess = ess.uniform$data$stat)
 normal <- data.frame(ratio_ess = ess.normal$data$stat)
 student <- data.frame(ratio_ess = ess.student$data$stat)
 cauchy <- data.frame(ratio_ess = ess.cauchy$data$stat)
+beta <- data.frame(ratio_ess = ess.beta$data$stat)
 
 uniform$distr <-  'uniform'
 normal$distr  <- 'normal'
 student$distr <-  'student'
 cauchy$distr  <- 'cauchy'
+beta$distr  <- 'beta'
 
-
-distrLength <- rbind(uniform, normal, student, cauchy)
+distrLength <- rbind(uniform, normal, student, cauchy, beta)
 
 ggplot(distrLength, aes(ratio_ess, fill = distr)) + geom_histogram(alpha = 0.5, aes(y = ..density..), bins = 50)+ scale_color_brewer(palette = "Dark2") + scale_fill_brewer(palette = "Dark2")
 
@@ -854,7 +875,8 @@ loo.uniform    <- loo(model.full.uniform, cores = 4)
 loo.normal    <- loo(model.full.normal, cores = 4)
 loo.student <- loo(model.full.student, cores = 4)
 loo.cauchy   <- loo(model.full.cauchy, cores = 4)
-compar_models_prior <- loo_compare(loo.uniform, loo.normal, loo.student, loo.cauchy)
+loo.beta <- loo(model.full.beta, cores = 4)
+compar_models_prior <- loo_compare(loo.uniform, loo.normal, loo.student, loo.cauchy, loo.beta)
 compar_models_prior
 
 ```
@@ -954,7 +976,7 @@ fitStan_complete <- stan(model_code = stan_code_complete,
                 seed = 12345,
                 control = list(adapt_delta = 0.95),
                 refresh = 0)
-print(fitStan_complete, pars = c('beta', 'sigma'))
+print(fitStan_complete, pars = c('beta', 'sigma','predict_age'))
 
 
 ```
@@ -979,8 +1001,8 @@ elpd_loo_mod_comp
 ```{r}
 posterior <- as.array(fitStan_complete)
 
-
-mcmc_dens_overlay(posterior, pars = c("beta[1]", "predict_age")) 
+color_scheme_set("brightblue")
+mcmc_dens_overlay(posterior, pars = c("beta[1]", "predict_age")) + ggtitle("Posterior drawns and predictive posterior")
 ```
 
 \clearpage
