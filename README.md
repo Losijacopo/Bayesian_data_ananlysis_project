@@ -13,3 +13,15 @@ Therefore, adopting the bayesian approach we will first develop a multiple logis
 
 Then, we will assess convergence analysis and efficency of the models, do posterior predictive checking and compare the models.
 To conclude we carry out a prediction on the age of the attempters and eventually answer our analysis problem.
+
+## Bayesian vs Frequentist
+
+## Parameters selection
+
+## Convergence analysis
+
+## Model comparison and sensitivity analysis
+
+## Predictive checking
+
+## Age prediction
